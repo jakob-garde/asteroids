@@ -8,14 +8,10 @@
 enum EntityType {
     ET_UNKNOWN,
 
-    /*
-    ET_PLATFORM,
-    ET_WALL_LEFT,
-    ET_WALL_RIGHT,
-    ET_PORTAL,
-    ET_TRAPDOOR,
-    ET_CAT,
-    */
+    ET_AST_SMALL,
+    ET_AST_MED,
+    ET_AST_LARGE,
+    ET_AST_BRUTE,
 
     ET_CNT
 };
@@ -42,24 +38,25 @@ struct Frame {
 struct Animation {
     EntityType tpe;
     Texture texture;
-    s32 frame_cnt;
     s32 frame_sz;
-    Frame frames[16];
+    Array<Frame> frames;
 };
 
-Animation InitAnimation(const char* anifile, EntityType tpe) {
+Animation InitAnimation(MArena *a_dest, const char* anifile, EntityType tpe) {
     Animation ani = {};
 
     ani.tpe = tpe;
     ani.texture = LoadTexture(anifile);
     assert(ani.texture.width % ani.texture.height == 0);
-    ani.frame_cnt = ani.texture.width / ani.texture.height;
     ani.frame_sz = ani.texture.height;
+    s32 ani_cnt = ani.texture.width / ani.texture.height;
+    ani.frames = InitArray<Frame>(a_dest, ani_cnt);
+    ani.frames.len = ani_cnt;
 
-    for (s32 i = 0; i < ani.frame_cnt; ++i) {
-        ani.frames[i].source = { (f32) ani.texture.height * i, 0.0f, (f32) ani.texture.height, (f32) ani.texture.height };
-        ani.frames[i].duration = 100;
-        ani.frames[i].tex = ani.texture;
+    for (s32 i = 0; i < ani.frames.len; ++i) {
+        ani.frames.arr[i].source = { (f32) ani.texture.height * i, 0.0f, (f32) ani.texture.height, (f32) ani.texture.height };
+        ani.frames.arr[i].duration = 100;
+        ani.frames.arr[i].tex = ani.texture;
     }
     return ani;
 }
@@ -72,6 +69,8 @@ struct Entity {
     // kinematics
     Vector2 anchor;
     Vector2 velocity;
+    f32 rot;
+    f32 vrot;
     Rectangle coll_rect;
     Vector2 coll_offset;
 
@@ -97,7 +96,7 @@ struct Entity {
 
     Frame GetFrame(Array<Animation> animations) {
         Animation ani = animations.arr[ani_idx + ani_idx0];
-        Frame frame = ani.frames[frame_idx];
+        Frame frame = ani.frames.arr[frame_idx];
 
         if (frame.duration == 0) {
             return frame;
@@ -105,8 +104,8 @@ struct Entity {
 
         if (frame_elapsed > frame.duration) {
             frame_elapsed = 0;
-            frame_idx = (frame_idx + 1) % ani.frame_cnt;
-            frame = ani.frames[frame_idx];
+            frame_idx = (frame_idx + 1) % ani.frames.len;
+            frame = ani.frames.arr[frame_idx];
         }
 
         if (facing_right) {

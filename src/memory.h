@@ -61,18 +61,14 @@ struct Array {
     u32 cap = 0;
 
     inline
-    T *Add(T element) {
+    void Add(T element) {
         assert(len < cap);
 
         arr[len++] = element;
-        return LastPtr();
     }
-    T *LastPtr() {
-        if (len) {
-            return arr + len - 1;
-        }
-        else {
-            return NULL;
+    void AddSafe(T element) {
+        if (len < cap) {
+            arr[len++] = element;
         }
     }
 };
