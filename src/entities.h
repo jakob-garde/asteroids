@@ -21,6 +21,14 @@ enum EntityType {
     ET_CNT
 };
 
+enum EntityAnimationState {
+    ES_UNDEF,
+
+    ES_SHOOT_CHARGE,
+    ES_SHOOT_RELEASE,
+};
+
+
 struct Frame {
     Rectangle source;
     s32 duration;
@@ -72,9 +80,9 @@ Animation InitAnimation(MArena *a_dest, const char* anifile, EntityType tpe, s32
         ani.frame_w = ani.texture.width / frame_cnt_if_nonsquare;
     }
 
-    s32 ani_cnt = ani.texture.width / ani.texture.width;
-    ani.frames = InitArray<Frame>(a_dest, ani_cnt);
-    ani.frames.len = ani_cnt;
+    s32 frame_cnt = ani.texture.width / ani.frame_w;
+    ani.frames = InitArray<Frame>(a_dest, frame_cnt);
+    ani.frames.len = frame_cnt;
 
     for (s32 i = 0; i < ani.frames.len; ++i) {
         ani.frames.arr[i].source = { (f32) ani.frame_w * i, 0.0f, (f32) ani.frame_w, (f32) ani.frame_h };
@@ -86,6 +94,7 @@ Animation InitAnimation(MArena *a_dest, const char* anifile, EntityType tpe, s32
 
 struct Entity {
     EntityType tpe;
+    EntityAnimationState stt;
     s32 facing_left;
     s32 state;
     s32 deleted;

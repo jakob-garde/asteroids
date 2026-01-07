@@ -10,7 +10,9 @@
 Array<Animation> LoadAssets(MArena *a_dest) {
     animations = InitArray<Animation>(a_dest, 64);
 
+    animations.Add( InitAnimation(a_dest, "resources/shoot.png", ET_SHOOT, 0, 1, 8) );
     animations.Add( InitAnimation(a_dest, "resources/notebook.png", ET_AST_BACKGROUND, 0, 1, 1) );
+    animations.Add( InitAnimation(a_dest, "resources/notebook_mask.png", ET_AST_BACKGROUND_MASK, 0, 1, 1) );
 
     animations.Add( InitAnimation(a_dest, "resources/ast_small_01.png", ET_AST_SMALL, 0, 6) );
     animations.Add( InitAnimation(a_dest, "resources/ast_small_02.png", ET_AST_SMALL, 1, 6) );
@@ -26,9 +28,6 @@ Array<Animation> LoadAssets(MArena *a_dest) {
     animations.Add( InitAnimation(a_dest, "resources/ast_large_01.png", ET_AST_LARGE, 1, 2) );
     animations.Add( InitAnimation(a_dest, "resources/ast_brutal_01.png", ET_AST_BRUTAL, 0, 2) );
     animations.Add( InitAnimation(a_dest, "resources/ast_brutal_02.png", ET_AST_BRUTAL, 1, 2) );
-    animations.Add( InitAnimation(a_dest, "resources/shoot.png", ET_SHOOT, 0, 1, 8) );
-
-    animations.Add( InitAnimation(a_dest, "resources/notebook_mask.png", ET_AST_BACKGROUND_MASK, 0, 1, 1) );
 
     return animations;
 }
@@ -49,9 +48,7 @@ void Init() {
     entities = InitArray<Entity>(&a, 256);
     animations = LoadAssets(&a);
 
-
     background = CreateEntity(ET_AST_BACKGROUND, animations);
-
     Frame frm = background.GetFrame(animations);
     f32 aspect = 1.0f * frm.source.width / frm.source.height;
     background.ani_offset = { 0, 0 };
@@ -74,13 +71,69 @@ void Init() {
     mask_right = mask_left + mask.ani_rect.width - 64;
 
     SpawnStartupAsteroids(&entities, 0);
-
 }
 
 void Close() {
     UnloadTextures(animations);
     CloseWindow();
 }
+
+
+Entity ShotCreate() {
+    Entity shot = CreateEntity(ET_SHOOT, animations);
+    shot.stt = ES_SHOOT_CHARGE;
+
+    shot.anchor = { (f32) GetMouseX(), (f32) GetMouseY() };
+    shot.ani_offset.y = shot.ani_rect.height;
+    shot.velocity.y = -0.9;
+    shot.Update(0);
+
+    return shot;
+}
+
+Frame ShotGetFrame(Entity *shot) {
+    Animation ani = animations.arr[shot->ani_idx0 + shot->ani_idx];
+    Frame frame = ani.frames.arr[shot->frame_idx];
+
+    if (frame.duration == 0) {
+        return frame;
+    }
+
+    if (shot->frame_elapsed > frame.duration) {
+        if (shot->stt == ES_SHOOT_CHARGE) {
+            if (shot->frame_idx == 2) {
+                shot->stt = ES_SHOOT_RELEASE;
+            }
+
+            shot->frame_idx = shot->frame_idx + 1;
+        }
+        else if (shot->stt == ES_SHOOT_RELEASE) {
+            shot->frame_idx = 3 + (shot->frame_idx + 1) % 5;
+        }
+        else {
+            assert(1 == 0);
+        }
+        frame = ani.frames.arr[shot->frame_idx];
+        shot->frame_elapsed = 0;
+
+        printf("%d\n", shot->frame_idx);
+    }
+
+    return frame;
+}
+
+void ShotUpdate(Entity *shot, f32 dt) {
+    if (shot->frame_idx == 2) {
+        shot->anchor.y += dt * shot->velocity.y;
+    }
+    else if (shot->frame_idx > 2) {
+        shot->anchor.y += dt * shot->velocity.y;
+    }
+    shot->ani_rect.x = shot->anchor.x;
+    shot->ani_rect.y = shot->anchor.y;
+    shot->frame_elapsed += dt;
+}
+
 
 void FrameDrawAndSwap() {
     BeginDrawing();
@@ -94,6 +147,10 @@ void FrameDrawAndSwap() {
         ent = entities.arr + i;
         if (IsAsteroid(ent->tpe)) {
             frame = ent->GetFrame(animations);
+            DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+        }
+        else if (ent->tpe == ET_SHOOT) {
+            frame = ShotGetFrame(ent);
             DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
         }
     }
@@ -118,6 +175,7 @@ void FrameDrawAndSwap() {
     entities_next.len = 0;
 }
 
+
 void FrameUpdate() {
     f32 ship_delta_vy = 0;
     if (IsKeyPressed(KEY_UP)) {
@@ -127,6 +185,10 @@ void FrameUpdate() {
         ship_delta_vy = - 0.1f;
     }
     ship_vy += ship_delta_vy;
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        entities.Add( ShotCreate() );
+    }
 
     // update
     s32 asteroid_fcnt = 0;
@@ -158,6 +220,9 @@ void FrameUpdate() {
             else {
                 asteroid_fcnt++;
             }
+        }
+        else if (ent->tpe == ET_SHOOT) {
+            ShotUpdate(ent, dt);
         }
     }
 
