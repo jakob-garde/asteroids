@@ -1,7 +1,7 @@
 #ifndef __ENTITIES_H__
 #define __ENTITIES_H__
 
-#include "raylib.h"
+
 #include "memory.h"
 
 
