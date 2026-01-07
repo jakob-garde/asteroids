@@ -143,5 +143,45 @@ void UnloadTextures(Array<Animation> animations) {
     }
 }
 
+Entity CreateEntity(EntityType tpe, Array<Animation> animations) {
+    // sets as many things as possible on the entity of type tpe, for single-frame and animated entities
+
+    for (s32 i = 0; i < animations.len; ++i) {
+        Animation *ani = animations.arr + i;
+        if (ani->tpe == tpe) {
+
+            if (DEBUG_BUILD) {
+                // check internal consistence of animations:
+                //      - must be consecutive
+                //      - group_size must match found count
+                for (s32 j = 0; j < ani->group_sz; ++j) {
+                    Animation ani_check = animations.arr[i + j];
+
+                    assert( ani_check.group_sz == ani->group_sz  );
+                    assert( ani_check.group_idx == j );
+                    if (ani->frames.len == 1) {
+                        assert( ani_check.frames.len == 1 );
+                    }
+                }
+            }
+
+            Entity ent = {};
+            ent.tpe = tpe;
+            ent.ani_idx0 = i;
+            if (ani->frames.len == 1) {
+                ent.ani_idx0 += GetRandomValue(0, ani->group_sz - 1);
+            }
+            ent.ani_cnt = ani->frames.len;
+            ent.ani_offset = { ani->frame_w / 2.0f, ani->frame_h / 2.0f };
+            ent.ani_rect = { ent.anchor.x, ent.anchor.y, 1.0f * ani->frame_w, 1.0f * ani->frame_h };
+            ent.coll_offset = { ani->frame_w / 2.0f, ani->frame_h / 2.0f };
+            ent.coll_rect = { ent.anchor.x, ent.anchor.y, 1.0f * ani->frame_w, 1.0f * ani->frame_h };
+            ent.coll_radius = fmin( ani->frame_w, ani->frame_h );
+
+            return ent;
+        }
+    }
+}
+
 
 #endif

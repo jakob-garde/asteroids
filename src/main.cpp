@@ -2,11 +2,6 @@
 #include "memory.h"
 #include "entities.h"
 
-// for release builds, we should set DEBUG_BUILD = 0
-#ifndef DEBUG_BUILD
-#define DEBUG_BUILD 1
-#endif
-
 #define ARENA_CAP 1024 * 1024 * 64
 u8 arena_mem[ARENA_CAP];
 
@@ -19,106 +14,87 @@ struct AsteroidGame {
     GameState state;
 };
 
+Array<Entity> entities;
 AsteroidGame game;
 Array<Animation> animations;
 
-void LoadAssets(MArena *a_dest) {
-    animations = InitArray<Animation>(a_dest, 14);
+Array<Animation> LoadAssets(MArena *a_dest) {
+    Array<Animation> _animations = InitArray<Animation>(a_dest, 14);
 
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_01.png", ET_AST_SMALL, 0, 6) );
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_02.png", ET_AST_SMALL, 1, 6) );
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_03.png", ET_AST_SMALL, 2, 6) );
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_04.png", ET_AST_SMALL, 3, 6) );
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_05.png", ET_AST_SMALL, 4, 6) );
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_06.png", ET_AST_SMALL, 5, 6) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_01.png", ET_AST_SMALL, 0, 6) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_02.png", ET_AST_SMALL, 1, 6) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_03.png", ET_AST_SMALL, 2, 6) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_04.png", ET_AST_SMALL, 3, 6) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_05.png", ET_AST_SMALL, 4, 6) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_06.png", ET_AST_SMALL, 5, 6) );
 
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_01.png", ET_AST_MED, 0, 4) );
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_02.png", ET_AST_MED, 1, 4) );
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_03.png", ET_AST_MED, 2, 4) );
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_04.png", ET_AST_MED, 3, 4) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_01.png", ET_AST_MED, 0, 4) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_02.png", ET_AST_MED, 1, 4) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_03.png", ET_AST_MED, 2, 4) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_04.png", ET_AST_MED, 3, 4) );
 
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_large_02.png", ET_AST_LARGE, 0, 2) );
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_large_01.png", ET_AST_LARGE, 1, 2) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_large_02.png", ET_AST_LARGE, 0, 2) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_large_01.png", ET_AST_LARGE, 1, 2) );
 
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_brutal_01.png", ET_AST_BRUTE, 0, 2) );
-    animations.AddSafe( InitAnimation(a_dest, "resources/ast_brutal_02.png", ET_AST_BRUTE, 1, 2) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_brutal_01.png", ET_AST_BRUTE, 0, 2) );
+    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_brutal_02.png", ET_AST_BRUTE, 1, 2) );
+
+    return _animations;
 }
 
-
-Entity CreateEntity(EntityType tpe) {
-    // sets as many things as possible on the entity of type tpe, for single-frame and animated entities
-
-    for (s32 i = 0; i < animations.len; ++i) {
-        Animation *ani = animations.arr + i;
-        if (ani->tpe == tpe) {
-
-            if (DEBUG_BUILD) {
-                // check internal consistence of animations:
-                //      - must be consecutive
-                //      - group_size must match found count
-                for (s32 j = 0; j < ani->group_sz; ++j) {
-                    Animation ani_check = animations.arr[i + j];
-
-                    assert( ani_check.group_sz == ani->group_sz  );
-                    assert( ani_check.group_idx == j );
-                    if (ani->frames.len == 1) {
-                        assert( ani_check.frames.len == 1 );
-                    }
-                }
-            }
-
-            Entity ent = {};
-            ent.tpe = tpe;
-            ent.ani_idx0 = i;
-            if (ani->frames.len == 1) {
-                ent.ani_idx0 += GetRandomValue(0, ani->group_sz - 1);
-            }
-            ent.ani_cnt = ani->frames.len;
-            ent.ani_offset = { ani->frame_w / 2.0f, ani->frame_h / 2.0f };
-            ent.ani_rect = { ent.anchor.x, ent.anchor.y, 1.0f * ani->frame_w, 1.0f * ani->frame_h };
-            ent.coll_offset = { ani->frame_w / 2.0f, ani->frame_h / 2.0f };
-            ent.coll_rect = { ent.anchor.x, ent.anchor.y, 1.0f * ani->frame_w, 1.0f * ani->frame_h };
-            ent.coll_radius = fmin( ani->frame_w, ani->frame_h );
-
-            return ent;
-        }
-    }
+bool IsAsteroid(EntityType tpe) {
+    bool result = tpe == ET_AST_SMALL
+        || tpe == ET_AST_MED
+        || tpe == ET_AST_LARGE
+        || tpe == ET_AST_BRUTE;
+    return result;
 }
 
 
 f32 ship_vy = 0.0f;
 
-Entity LoadAsteroid(EntityType tpe) {
-    Entity ast = CreateEntity(tpe); 
-    f32 x = GetRandomValue(0, GetScreenWidth() - 1);
-    f32 y = GetRandomValue(0, GetScreenHeight() - 1);
-    ast.anchor = { x, y };
+Entity CreateAsteroid(EntityType tpe, bool on_screen = false) {
+    Entity ast = CreateEntity(tpe, animations);
+
+    if (on_screen) {
+        f32 x = GetRandomValue(0, GetScreenWidth() - 1);
+        f32 y = GetRandomValue(0, GetScreenHeight() - 1);
+        ast.anchor = { x, y };
+    }
+    else {
+        f32 x = GetRandomValue(0, GetScreenWidth() - 1);
+        f32 y = GetRandomValue(-512, -64);
+        ast.anchor = { x, y };
+    }
+
     f32 vx = GetRandomValue(-100, 100) / 700.0f;
     f32 vy = GetRandomValue(-100, 100) / 700.0f + ship_vy;
     ast.velocity = { vx, vy };
+
+    ast.rot = GetRandomValue(-100, 100);
     ast.vrot = GetRandomValue(-100, 100) / 300.0f;
     ast.Update(0);
+
     return ast;
 }
 
 
-void LoadAsteroids(Array<Entity> *entities) {
+inline
+bool DoSpawn(f32 dt, f32 vy, f32 rate) {
+    f32 vy_base = 0.1f;
+    bool result = Rand01() < rate * dt * (abs(vy) + vy_base) / 1000.0f;
+    return result;
+}
 
-    for (s32 i = 0; i < 10; ++i) {
-        // @ update:
-        entities->AddSafe( LoadAsteroid(ET_AST_SMALL) );
+void SpawnAsteroids(Array<Entity> *entities, f32 dt, f32 vy) {
+    f32 rate_small = 16; // asteroids per second
+    f32 rate_med = 2;
+
+    if (DoSpawn(dt, vy, rate_small)) {
+        entities->AddSafe( CreateAsteroid(ET_AST_SMALL) );
     }
-    for (s32 i = 0; i < 5; ++i) {
-        // @ update:
-        entities->AddSafe( LoadAsteroid(ET_AST_MED) );
-    }
-    for (s32 i = 0; i < 3; ++i) {
-        // @ update:
-        entities->AddSafe( LoadAsteroid(ET_AST_LARGE) );
-    }
-    for (s32 i = 0; i < 3; ++i) {
-        // @ update:
-        entities->AddSafe( LoadAsteroid(ET_AST_BRUTE) );
+    if (DoSpawn(dt, vy, rate_med)) {
+        entities->AddSafe( CreateAsteroid(ET_AST_MED) );
     }
 }
 
@@ -129,17 +105,19 @@ void InitRaylib() {
     SetTargetFPS(60);
 }
 
-
 void Run() {
     InitRaylib();
     f32 w = GetScreenWidth();
     f32 h = GetScreenHeight();
 
+    RandInit();
     MArena a = ArenaCreate(arena_mem, ARENA_CAP);
-    Array<Entity> ents = InitArray<Entity>(&a, 256);
-    Array<Entity> ents_next = InitArray<Entity>(&a, 256);
-    LoadAssets(&a);
-    LoadAsteroids(&ents);
+    Array<Entity> entities_next = InitArray<Entity>(&a, 256);
+    entities = InitArray<Entity>(&a, 256);
+    animations = LoadAssets(&a);
+
+    s32 asteroid_avg_cnt = 32;
+
 
     while (!WindowShouldClose()) {
         f32 dt = GetFrameTime() * 1000;
@@ -148,8 +126,8 @@ void Run() {
         // draw
         BeginDrawing();
         ClearBackground(WHITE);
-        for (s32 i = 0; i < ents.len; ++i) {
-            Entity *ent = ents.arr + i;
+        for (s32 i = 0; i < entities.len; ++i) {
+            Entity *ent = entities.arr + i;
 
             Frame frame = ent->GetFrame(animations);
             DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, BLACK);
@@ -160,12 +138,11 @@ void Run() {
         // DBG
 
         if (IsKeyPressed(KEY_SPACE)) {
-            LoadAsteroids(&ents);
             printf("loading entities\n");
-            printf("live entities: %d\n", ents.len);
+            printf("live entities: %d\n", entities.len);
         }
         if (IsKeyPressed(KEY_TAB)) {
-            printf("live entities: %d\n", ents.len);
+            printf("live entities: %d\n", entities.len);
         }
 
 
@@ -176,13 +153,15 @@ void Run() {
         else if (IsKeyPressed(KEY_DOWN)) {
             ship_delta_vy = - 0.1f;
         }
+        ship_vy += ship_delta_vy;
+
+        s32 asteroid_fcnt = 0;
 
         // update & copy
-        for (s32 i = 0; i < ents.len; ++i) {
-            Entity *ent = ents.arr + i;
+        for (s32 i = 0; i < entities.len; ++i) {
+            Entity *ent = entities.arr + i;
 
-            //if (ent->tpe == ET_AST_SMALL) {
-            if (true /* is_asteroid */) {
+            if (IsAsteroid(ent->tpe)) {
                 ent->rot += dt * ent->vrot;
                 ent->anchor.x += dt * ent->velocity.x;
                 ent->anchor.y += dt * ent->velocity.y;
@@ -190,26 +169,41 @@ void Run() {
                 ent->ani_rect.y = ent->anchor.y;
                 ent->velocity.y += ship_delta_vy;
 
-            }
-            if (ent->anchor.x < - ent->ani_rect.width 
-                || ent->anchor.y < - ent->ani_rect.height
-                || ent->anchor.x > w + ent->ani_rect.width
-                || ent->anchor.y > h + ent->ani_rect.height)
-            {
-                // out of window - don't copy to next frame // 
-                ent->deleted = true;
-            }
-
-            if (ent->deleted == false) {
-                ents_next.Add(*ent);
+                if (ent->anchor.x < - ent->ani_rect.width 
+                    || ent->anchor.y < - ent->ani_rect.height
+                    || ent->anchor.x > w + ent->ani_rect.width
+                    || ent->anchor.y > h + ent->ani_rect.height)
+                {
+                    if (ent->anchor.y < 0) {
+                        // above window
+                    }
+                    else {
+                        // out of window - don't copy to next frame // 
+                        ent->deleted = true;
+                    }
+                }
+                else {
+                    asteroid_fcnt++;
+                }
             }
         }
 
+        // load new ones if there aren't too many
+        SpawnAsteroids(&entities, dt, ship_vy);
+
         // swap
-        Array<Entity> swap = ents;
-        ents = ents_next;
-        ents_next = swap;
-        ents_next.len = 0;
+        for (s32 i = 0; i < entities.len; ++i) {
+            Entity *ent = entities.arr + i;
+
+            if (ent->deleted == false) {
+                entities_next.Add(*ent);
+            }
+        }
+
+        Array<Entity> swap = entities;
+        entities = entities_next;
+        entities_next = swap;
+        entities_next.len = 0;
     }
 
     UnloadTextures(animations);

@@ -1,6 +1,13 @@
 #ifndef __MEMORY_H__
 #define __MEMORY_H__
 
+
+// for release builds, we should set DEBUG_BUILD = 0
+#ifndef DEBUG_BUILD
+#define DEBUG_BUILD 1
+#endif
+
+
 #include <cstdio>
 #include <cstdint>
 #include <cassert>
@@ -85,6 +92,55 @@ Array<T> InitArray(MArena *a, u32 max_len) {
 
 
 // TODO: hashing: hash, random, map
+// TODO: deg2rot, rot2deg
 
+
+u64 Hash(u64 x) {
+    x = ((x >> 16) ^ x) * 0x45d9f3b;
+    x = ((x >> 16) ^ x) * 0x45d9f3b;
+    x = ((x >> 16) ^ x);
+    return x;
+}
+void Kiss_SRandom(u64 state[7], u64 seed) {
+    if (seed == 0) seed = 1;
+    state[0] = seed | 1; // x
+    state[1] = seed | 2; // y
+    state[2] = seed | 4; // z
+    state[3] = seed | 8; // w
+    state[4] = 0;        // carry
+}
+u64 Kiss_Random(u64 state[7]) {
+    state[0] = state[0] * 69069 + 1;
+    state[1] ^= state[1] << 13;
+    state[1] ^= state[1] >> 17;
+    state[1] ^= state[1] << 5;
+    state[5] = (state[2] >> 2) + (state[3] >> 3) + (state[4] >> 2);
+    state[6] = state[3] + state[3] + state[2] + state[4];
+    state[2] = state[3];
+    state[3] = state[6];
+    state[4] = state[5] >> 30;
+    return state[0] + state[1] + state[3];
+}
+u64 g_kiss_randstate[7];
+
+u32 RandInit(u32 seed = 0) {
+    if (seed == 0) {
+        seed = (u32) Hash(42);
+    }
+    Kiss_SRandom(g_kiss_randstate, seed);
+    Kiss_Random(g_kiss_randstate); // flush the first one
+
+    return seed;
+}
+
+#ifndef ULONG_MAX
+#  define ULONG_MAX ( (u64) 0xffffffffffffffffUL )
+#endif
+
+f32 Rand01() {
+    f32 randnum = (f32) Kiss_Random(g_kiss_randstate);
+    randnum /= (f32) ULONG_MAX + 1;
+    return randnum;
+}
 
 #endif
