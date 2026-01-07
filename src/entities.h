@@ -8,10 +8,15 @@
 enum EntityType {
     ET_UNKNOWN,
 
+    ET_AST_BACKGROUND,
+    ET_AST_BACKGROUND_MASK,
+
     ET_AST_SMALL,
     ET_AST_MED,
     ET_AST_LARGE,
-    ET_AST_BRUTE,
+    ET_AST_BRUTAL,
+
+    ET_SHOOT,
 
     ET_CNT
 };
@@ -46,7 +51,7 @@ struct Animation {
     Array<Frame> frames;
 };
 
-Animation InitAnimation(MArena *a_dest, const char* anifile, EntityType tpe, s32 group_idx, s32 group_sz, s32 frame_w_if_nonsquare = 0) {
+Animation InitAnimation(MArena *a_dest, const char* anifile, EntityType tpe, s32 group_idx, s32 group_sz, s32 frame_cnt_if_nonsquare = 0) {
     // animations are:
     //      - single-row
     //      - square unless frame_w_if_nonsquare != 0
@@ -59,12 +64,12 @@ Animation InitAnimation(MArena *a_dest, const char* anifile, EntityType tpe, s32
     ani.texture = LoadTexture(anifile);
     ani.frame_h = ani.texture.height;
     ani.frame_w = ani.frame_h;
-    if (frame_w_if_nonsquare == 0) {
+    if (frame_cnt_if_nonsquare == 0) {
         assert(ani.texture.width % ani.texture.height == 0);
     }
     else {
-        assert(ani.texture.width % ani.texture.height != 0);
-        ani.frame_w = frame_w_if_nonsquare;
+        assert(ani.texture.width % frame_cnt_if_nonsquare == 0);
+        ani.frame_w = ani.texture.width / frame_cnt_if_nonsquare;
     }
 
     s32 ani_cnt = ani.texture.width / ani.texture.width;

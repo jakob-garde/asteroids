@@ -8,36 +8,36 @@
 
 
 Array<Animation> LoadAssets(MArena *a_dest) {
-    Array<Animation> _animations = InitArray<Animation>(a_dest, 14);
+    animations = InitArray<Animation>(a_dest, 64);
 
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_01.png", ET_AST_SMALL, 0, 6) );
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_02.png", ET_AST_SMALL, 1, 6) );
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_03.png", ET_AST_SMALL, 2, 6) );
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_04.png", ET_AST_SMALL, 3, 6) );
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_05.png", ET_AST_SMALL, 4, 6) );
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_small_06.png", ET_AST_SMALL, 5, 6) );
+    animations.Add( InitAnimation(a_dest, "resources/notebook.png", ET_AST_BACKGROUND, 0, 1, 1) );
 
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_01.png", ET_AST_MED, 0, 4) );
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_02.png", ET_AST_MED, 1, 4) );
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_03.png", ET_AST_MED, 2, 4) );
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_medium_04.png", ET_AST_MED, 3, 4) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_small_01.png", ET_AST_SMALL, 0, 6) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_small_02.png", ET_AST_SMALL, 1, 6) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_small_03.png", ET_AST_SMALL, 2, 6) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_small_04.png", ET_AST_SMALL, 3, 6) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_small_05.png", ET_AST_SMALL, 4, 6) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_small_06.png", ET_AST_SMALL, 5, 6) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_medium_01.png", ET_AST_MED, 0, 4) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_medium_02.png", ET_AST_MED, 1, 4) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_medium_03.png", ET_AST_MED, 2, 4) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_medium_04.png", ET_AST_MED, 3, 4) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_large_02.png", ET_AST_LARGE, 0, 2) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_large_01.png", ET_AST_LARGE, 1, 2) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_brutal_01.png", ET_AST_BRUTAL, 0, 2) );
+    animations.Add( InitAnimation(a_dest, "resources/ast_brutal_02.png", ET_AST_BRUTAL, 1, 2) );
+    animations.Add( InitAnimation(a_dest, "resources/shoot.png", ET_SHOOT, 0, 1, 8) );
 
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_large_02.png", ET_AST_LARGE, 0, 2) );
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_large_01.png", ET_AST_LARGE, 1, 2) );
+    animations.Add( InitAnimation(a_dest, "resources/notebook_mask.png", ET_AST_BACKGROUND_MASK, 0, 1, 1) );
 
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_brutal_01.png", ET_AST_BRUTE, 0, 2) );
-    _animations.AddSafe( InitAnimation(a_dest, "resources/ast_brutal_02.png", ET_AST_BRUTE, 1, 2) );
-
-    return _animations;
+    return animations;
 }
-
-
-f32 ship_vy = 0.0f;
 
 
 void Init() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroids");
+    ToggleFullscreen();
     SetTargetFPS(60);
 
     screen_w = GetScreenWidth();
@@ -49,7 +49,32 @@ void Init() {
     entities = InitArray<Entity>(&a, 256);
     animations = LoadAssets(&a);
 
+
+    background = CreateEntity(ET_AST_BACKGROUND, animations);
+
+    Frame frm = background.GetFrame(animations);
+    f32 aspect = 1.0f * frm.source.width / frm.source.height;
+    background.ani_offset = { 0, 0 };
+    background.ani_rect.width = screen_h * aspect;
+    background.ani_rect.height = screen_h;
+    background.ani_rect.x = (screen_w - background.ani_rect.width) / 2.0f;
+    background.ani_rect.y = 0;
+    entities.Add( background );
+
+    mask = CreateEntity(ET_AST_BACKGROUND_MASK, animations);
+    frm = mask.GetFrame(animations);
+    mask.ani_offset = { 0, 0 };
+    mask.ani_rect.width = screen_h * aspect;
+    mask.ani_rect.height = screen_h;
+    mask.ani_rect.x = (screen_w - mask.ani_rect.width) / 2.0f;
+    mask.ani_rect.y = 0;
+    entities.Add( mask );
+
+    mask_left = (screen_w - mask.ani_rect.width) / 2.0f + 32;
+    mask_right = mask_left + mask.ani_rect.width - 64;
+
     SpawnStartupAsteroids(&entities, 0);
+
 }
 
 void Close() {
@@ -59,13 +84,24 @@ void Close() {
 
 void FrameDrawAndSwap() {
     BeginDrawing();
-    ClearBackground(WHITE);
-    for (s32 i = 0; i < entities.len; ++i) {
-        Entity *ent = entities.arr + i;
+    ClearBackground(BLACK);
 
-        Frame frame = ent->GetFrame(animations);
-        DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, BLACK);
+    Frame frame = background.GetFrame(animations);
+    Entity *ent = &background;
+    DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+
+    for (s32 i = 0; i < entities.len; ++i) {
+        ent = entities.arr + i;
+        if (IsAsteroid(ent->tpe)) {
+            frame = ent->GetFrame(animations);
+            DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+        }
     }
+
+    frame = mask.GetFrame(animations);
+    ent = &mask;
+    DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+
     EndDrawing();
 
     for (s32 i = 0; i < entities.len; ++i) {
@@ -106,9 +142,9 @@ void FrameUpdate() {
             ent->ani_rect.y = ent->anchor.y;
             ent->velocity.y += ship_delta_vy;
 
-            if (ent->anchor.x < - ent->ani_rect.width 
+            if (ent->anchor.x < mask_left
                 || ent->anchor.y < - ent->ani_rect.height
-                || ent->anchor.x > screen_w + ent->ani_rect.width
+                || ent->anchor.x > mask_right
                 || ent->anchor.y > screen_h + ent->ani_rect.height)
             {
                 if (ent->anchor.y < 0) {

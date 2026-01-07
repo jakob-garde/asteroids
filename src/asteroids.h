@@ -64,7 +64,7 @@ bool IsAsteroid(EntityType tpe) {
     bool result = tpe == ET_AST_SMALL
         || tpe == ET_AST_MED
         || tpe == ET_AST_LARGE
-        || tpe == ET_AST_BRUTE;
+        || tpe == ET_AST_BRUTAL;
     return result;
 }
 

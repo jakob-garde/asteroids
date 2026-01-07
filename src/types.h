@@ -27,6 +27,15 @@ Array<Entity> entities_next;
 
 f32 screen_w;
 f32 screen_h;
+f32 mask_left;
+f32 mask_right;
+
+f32 ship_vy = 0.0f;
+
+Entity background;
+Entity mask;
+
+
 
 
 #endif
