@@ -17,6 +17,7 @@ enum EntityType {
     ET_AST_BRUTAL,
 
     ET_SHOOT,
+    ET_SHIP,
 
     ET_CNT
 };
@@ -26,6 +27,10 @@ enum EntityAnimationState {
 
     ES_SHOOT_CHARGE,
     ES_SHOOT_RELEASE,
+
+    ES_SHIP_IDLE,
+    ES_SHIP_LEFT,
+    ES_SHIP_RIGHT,
 };
 
 
@@ -157,7 +162,7 @@ void UnloadTextures(Array<Animation> animations) {
     }
 }
 
-Entity CreateEntity(EntityType tpe, Array<Animation> animations) {
+Entity CreateEntity(EntityType tpe, Array<Animation> animations, bool select_random = true) {
     // sets as many things as possible on the entity of type tpe, for single-frame and animated entities
 
     for (s32 i = 0; i < animations.len; ++i) {
@@ -182,7 +187,7 @@ Entity CreateEntity(EntityType tpe, Array<Animation> animations) {
             Entity ent = {};
             ent.tpe = tpe;
             ent.ani_idx0 = i;
-            if (ani->frames.len == 1) {
+            if (select_random && ani->frames.len == 1) {
                 ent.ani_idx0 += GetRandomValue(0, ani->group_sz - 1);
             }
             ent.ani_cnt = ani->frames.len;

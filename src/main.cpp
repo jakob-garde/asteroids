@@ -29,9 +29,11 @@ Array<Animation> LoadAssets(MArena *a_dest) {
     animations.Add( InitAnimation(a_dest, "resources/ast_brutal_01.png", ET_AST_BRUTAL, 0, 2) );
     animations.Add( InitAnimation(a_dest, "resources/ast_brutal_02.png", ET_AST_BRUTAL, 1, 2) );
 
+    animations.Add( InitAnimation(a_dest, "resources/ship_idle.png", ET_SHIP, 0, 2) );
+    animations.Add( InitAnimation(a_dest, "resources/ship_side.png", ET_SHIP, 1, 2) );
+
     return animations;
 }
-
 
 void Init() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -70,6 +72,13 @@ void Init() {
     mask_left = (screen_w - mask.ani_rect.width) / 2.0f + 32;
     mask_right = mask_left + mask.ani_rect.width - 64;
 
+    Entity ship = CreateEntity(ET_SHIP, animations, false);
+    ship.stt = ES_SHIP_IDLE;
+    ship.anchor.x = (mask_left + mask_right) / 2;
+    ship.anchor.y = 200;
+    ship.Update(0);
+    entities.Add(ship);
+
     SpawnStartupAsteroids(&entities, 0);
 }
 
@@ -77,7 +86,6 @@ void Close() {
     UnloadTextures(animations);
     CloseWindow();
 }
-
 
 Entity ShotCreate() {
     Entity shot = CreateEntity(ET_SHOOT, animations);
@@ -104,7 +112,6 @@ Frame ShotGetFrame(Entity *shot) {
             if (shot->frame_idx == 2) {
                 shot->stt = ES_SHOOT_RELEASE;
             }
-
             shot->frame_idx = shot->frame_idx + 1;
         }
         else if (shot->stt == ES_SHOOT_RELEASE) {
@@ -135,6 +142,63 @@ void ShotUpdate(Entity *shot, f32 dt) {
 }
 
 
+void ShipUpdate(Entity *ship, f32 dt) {
+    ship->facing_left = false;
+    ship->stt = ES_SHIP_IDLE;
+
+    f32 speed = 0.4f;
+
+    if (IsKeyDown(KEY_LEFT)) {
+        ship->stt = ES_SHIP_LEFT;
+        ship->facing_left = true;
+
+        ship->anchor.x -= speed * dt;
+    }
+    else if (IsKeyDown(KEY_RIGHT)) {
+        ship->stt = ES_SHIP_RIGHT;
+
+        ship->anchor.x += speed * dt;
+    }
+
+    if (IsKeyDown(KEY_UP)) {
+        ship->anchor.y -= speed * dt;
+    }
+    else if (IsKeyDown(KEY_DOWN)) {
+        ship->anchor.y += speed * dt;
+    }
+    ship->Update(dt);
+
+
+    if (IsKeyPressed(KEY_SPACE)) {
+        Entity shot = ShotCreate();
+        shot.anchor = ship->anchor;
+        shot.anchor.y -= 4;
+        shot.anchor.x += 32;
+        shot.Update(0);
+        entities.Add(shot);
+    }
+
+}
+
+Frame ShipGetFrame(Entity *ship) {
+    if (ship->stt == ES_SHIP_IDLE) {
+        ship->ani_idx = 0;
+    }
+    else {
+        ship->ani_idx = 1;
+    }
+
+    Animation ani = animations.arr[ship->ani_idx0 + ship->ani_idx];
+    Frame frame = ani.frames.arr[ship->frame_idx];
+
+    if (ship->stt == ES_SHIP_LEFT) {
+        return frame.Mirror();
+    }
+    else {
+        return frame;
+    }
+}
+
 void FrameDrawAndSwap() {
     BeginDrawing();
     ClearBackground(BLACK);
@@ -151,6 +215,10 @@ void FrameDrawAndSwap() {
         }
         else if (ent->tpe == ET_SHOOT) {
             frame = ShotGetFrame(ent);
+            DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+        }
+        else if (ent->tpe == ET_SHIP) {
+            frame = ShipGetFrame(ent);
             DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
         }
     }
@@ -223,6 +291,13 @@ void FrameUpdate() {
         }
         else if (ent->tpe == ET_SHOOT) {
             ShotUpdate(ent, dt);
+
+            if (ent->anchor.y < -200) {
+                ent->deleted = true;
+            }
+        }
+        else if (ent->tpe == ET_SHIP) {
+            ShipUpdate(ent, dt);
         }
     }
 
