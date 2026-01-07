@@ -75,7 +75,7 @@ void Init() {
     Entity ship = CreateEntity(ET_SHIP, animations, false);
     ship.stt = ES_SHIP_IDLE;
     ship.anchor.x = (mask_left + mask_right) / 2;
-    ship.anchor.y = 200;
+    ship.anchor.y = screen_h - 256;
     ship.Update(0);
     entities.Add(ship);
 
@@ -246,12 +246,14 @@ void FrameDrawAndSwap() {
 
 void FrameUpdate() {
     f32 ship_delta_vy = 0;
+    /*
     if (IsKeyPressed(KEY_UP)) {
         ship_delta_vy = 0.1f;
     }
     else if (IsKeyPressed(KEY_DOWN)) {
         ship_delta_vy = - 0.1f;
     }
+    */
     ship_vy += ship_delta_vy;
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
