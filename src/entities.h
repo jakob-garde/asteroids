@@ -37,24 +37,42 @@ struct Frame {
 
 struct Animation {
     EntityType tpe;
+    s32 group_sz;
+    s32 group_idx;
+
     Texture texture;
-    s32 frame_sz;
+    s32 frame_h;
+    s32 frame_w;
     Array<Frame> frames;
 };
 
-Animation InitAnimation(MArena *a_dest, const char* anifile, EntityType tpe) {
-    Animation ani = {};
+Animation InitAnimation(MArena *a_dest, const char* anifile, EntityType tpe, s32 group_idx, s32 group_sz, s32 frame_w_if_nonsquare = 0) {
+    // animations are:
+    //      - single-row
+    //      - square unless frame_w_if_nonsquare != 0
 
+    Animation ani = {};
     ani.tpe = tpe;
+    ani.group_sz = group_sz;
+    ani.group_idx = group_idx;
+
     ani.texture = LoadTexture(anifile);
-    assert(ani.texture.width % ani.texture.height == 0);
-    ani.frame_sz = ani.texture.height;
-    s32 ani_cnt = ani.texture.width / ani.texture.height;
+    ani.frame_h = ani.texture.height;
+    ani.frame_w = ani.frame_h;
+    if (frame_w_if_nonsquare == 0) {
+        assert(ani.texture.width % ani.texture.height == 0);
+    }
+    else {
+        assert(ani.texture.width % ani.texture.height != 0);
+        ani.frame_w = frame_w_if_nonsquare;
+    }
+
+    s32 ani_cnt = ani.texture.width / ani.texture.width;
     ani.frames = InitArray<Frame>(a_dest, ani_cnt);
     ani.frames.len = ani_cnt;
 
     for (s32 i = 0; i < ani.frames.len; ++i) {
-        ani.frames.arr[i].source = { (f32) ani.texture.height * i, 0.0f, (f32) ani.texture.height, (f32) ani.texture.height };
+        ani.frames.arr[i].source = { (f32) ani.frame_w * i, 0.0f, (f32) ani.frame_w, (f32) ani.frame_h };
         ani.frames.arr[i].duration = 100;
         ani.frames.arr[i].tex = ani.texture;
     }
@@ -63,7 +81,7 @@ Animation InitAnimation(MArena *a_dest, const char* anifile, EntityType tpe) {
 
 struct Entity {
     EntityType tpe;
-    s32 facing_right;
+    s32 facing_left;
     s32 state;
 
     // kinematics
@@ -73,6 +91,7 @@ struct Entity {
     f32 vrot;
     Rectangle coll_rect;
     Vector2 coll_offset;
+    f32 coll_radius;
 
     // animations
     Rectangle ani_rect;
@@ -95,7 +114,7 @@ struct Entity {
     }
 
     Frame GetFrame(Array<Animation> animations) {
-        Animation ani = animations.arr[ani_idx + ani_idx0];
+        Animation ani = animations.arr[ani_idx0 + ani_idx];
         Frame frame = ani.frames.arr[frame_idx];
 
         if (frame.duration == 0) {
@@ -108,11 +127,11 @@ struct Entity {
             frame = ani.frames.arr[frame_idx];
         }
 
-        if (facing_right) {
-            return frame;
+        if (facing_left) {
+            return frame.Mirror();
         }
         else {
-            return frame.Mirror();
+            return frame;
         }
     }
 };

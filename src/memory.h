@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cassert>
 #include <cstring>
+#include <math.h>
 
 
 typedef uint8_t u8;
@@ -81,6 +82,9 @@ Array<T> InitArray(MArena *a, u32 max_len) {
     _arr.arr = (T*) ArenaAlloc(a, sizeof(T) * max_len);
     return _arr;
 }
+
+
+// TODO: hashing: hash, random, map
 
 
 #endif
