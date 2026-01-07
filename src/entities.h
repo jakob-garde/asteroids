@@ -83,6 +83,7 @@ struct Entity {
     EntityType tpe;
     s32 facing_left;
     s32 state;
+    s32 deleted;
 
     // kinematics
     Vector2 anchor;

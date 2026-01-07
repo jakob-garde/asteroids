@@ -191,15 +191,18 @@ void Run() {
                 ent->velocity.y += ship_delta_vy;
 
             }
-            if (    ent->anchor.x < - ent->ani_rect.width 
-                    || ent->anchor.y < - ent->ani_rect.height
-                    || ent->anchor.x > w + ent->ani_rect.width
-                    || ent->anchor.y > h + ent->ani_rect.height ) {
-                // don't copy to next frame
-                continue;
+            if (ent->anchor.x < - ent->ani_rect.width 
+                || ent->anchor.y < - ent->ani_rect.height
+                || ent->anchor.x > w + ent->ani_rect.width
+                || ent->anchor.y > h + ent->ani_rect.height)
+            {
+                // out of window - don't copy to next frame // 
+                ent->deleted = true;
             }
 
-            ents_next.Add(*ent);
+            if (ent->deleted == false) {
+                ents_next.Add(*ent);
+            }
         }
 
         // swap
