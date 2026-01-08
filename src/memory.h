@@ -143,4 +143,14 @@ f32 Rand01() {
     return randnum;
 }
 
+f32 RandPM1() {
+    f32 randnum = (f32) Kiss_Random(g_kiss_randstate);
+    randnum = 2.0f * randnum / ((f32) ULONG_MAX + 1) - 1;
+    return randnum;
+}
+
+f32 RandBin() {
+    return RandPM1() >= 0;
+}
+
 #endif

@@ -43,8 +43,9 @@ Array<Animation> LoadAssets(MArena *a_dest) {
     animations.Add( InitAnimation(a_dest, "resources/ast_brutal_01.png", ET_AST_BRUTAL, 0, 2) );
     animations.Add( InitAnimation(a_dest, "resources/ast_brutal_02.png", ET_AST_BRUTAL, 1, 2) );
 
-    animations.Add( InitAnimation(a_dest, "resources/ship_idle.png", ET_SHIP, 0, 2) );
-    animations.Add( InitAnimation(a_dest, "resources/ship_side.png", ET_SHIP, 1, 2) );
+    animations.Add( InitAnimation(a_dest, "resources/ship_idle.png", ET_SHIP, 0, 3) );
+    animations.Add( InitAnimation(a_dest, "resources/ship_side.png", ET_SHIP, 1, 3) );
+    animations.Add( InitAnimation(a_dest, "resources/ship_crash.png", ET_SHIP, 2, 3) );
 
     return animations;
 }

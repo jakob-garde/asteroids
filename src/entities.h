@@ -6,7 +6,7 @@
 
 
 enum EntityType {
-    ET_UNKNOWN,
+    ET_UNDEF,
 
     ET_AST_BACKGROUND,
     ET_AST_BACKGROUND_MASK,
@@ -18,8 +18,6 @@ enum EntityType {
 
     ET_SHOOT,
     ET_SHIP,
-
-    ET_CNT
 };
 
 enum EntityAnimationState {
@@ -31,6 +29,7 @@ enum EntityAnimationState {
     ES_SHIP_IDLE,
     ES_SHIP_LEFT,
     ES_SHIP_RIGHT,
+    ES_SHIP_CRASH,
 };
 
 
