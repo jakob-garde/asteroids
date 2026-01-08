@@ -2,9 +2,23 @@
 
 #include "memory.h"
 #include "entities.h"
-#include "types.h"
+#include "globals.h"
 
 #include "asteroids.h"
+#include "ship.h"
+
+
+/*
+enum GameState {
+    GS_TITLE,
+    GS_GAME,
+    GS_END,
+};
+struct AsteroidGame {
+    GameState state;
+};
+AsteroidGame game;
+*/
 
 
 Array<Animation> LoadAssets(MArena *a_dest) {
@@ -50,9 +64,12 @@ void Init() {
     entities = InitArray<Entity>(&a, 256);
     animations = LoadAssets(&a);
 
+    // notebook background
     background = CreateEntity(ET_AST_BACKGROUND, animations);
-    Frame frm = background.GetFrame(animations);
+
+    Frame frm = animations.arr[background.ani_idx0].frames.arr[0];
     f32 aspect = 1.0f * frm.source.width / frm.source.height;
+
     background.ani_offset = { 0, 0 };
     background.ani_rect.width = screen_h * aspect;
     background.ani_rect.height = screen_h;
@@ -60,8 +77,9 @@ void Init() {
     background.ani_rect.y = 0;
     entities.Add( background );
 
+    // notebook mask
     mask = CreateEntity(ET_AST_BACKGROUND_MASK, animations);
-    frm = mask.GetFrame(animations);
+
     mask.ani_offset = { 0, 0 };
     mask.ani_rect.width = screen_h * aspect;
     mask.ani_rect.height = screen_h;
@@ -72,12 +90,8 @@ void Init() {
     mask_left = (screen_w - mask.ani_rect.width) / 2.0f + 32;
     mask_right = mask_left + mask.ani_rect.width - 64;
 
-    Entity ship = CreateEntity(ET_SHIP, animations, false);
-    ship.stt = ES_SHIP_IDLE;
-    ship.anchor.x = (mask_left + mask_right) / 2;
-    ship.anchor.y = screen_h - 256;
-    ship.Update(0);
-    entities.Add(ship);
+    // ship / player
+    entities.Add(ShiptCreate());
 
     SpawnStartupAsteroids(&entities, 0);
 }
@@ -87,145 +101,26 @@ void Close() {
     CloseWindow();
 }
 
-Entity ShotCreate() {
-    Entity shot = CreateEntity(ET_SHOOT, animations);
-    shot.stt = ES_SHOOT_CHARGE;
-
-    shot.anchor = { (f32) GetMouseX(), (f32) GetMouseY() };
-    shot.ani_offset.y = shot.ani_rect.height;
-    shot.velocity.y = -0.9;
-    shot.Update(0);
-
-    return shot;
-}
-
-Frame ShotGetFrame(Entity *shot) {
-    Animation ani = animations.arr[shot->ani_idx0 + shot->ani_idx];
-    Frame frame = ani.frames.arr[shot->frame_idx];
-
-    if (frame.duration == 0) {
-        return frame;
-    }
-
-    if (shot->frame_elapsed > frame.duration) {
-        if (shot->stt == ES_SHOOT_CHARGE) {
-            if (shot->frame_idx == 2) {
-                shot->stt = ES_SHOOT_RELEASE;
-            }
-            shot->frame_idx = shot->frame_idx + 1;
-        }
-        else if (shot->stt == ES_SHOOT_RELEASE) {
-            shot->frame_idx = 3 + (shot->frame_idx + 1) % 5;
-        }
-        else {
-            assert(1 == 0);
-        }
-        frame = ani.frames.arr[shot->frame_idx];
-        shot->frame_elapsed = 0;
-
-        printf("%d\n", shot->frame_idx);
-    }
-
-    return frame;
-}
-
-void ShotUpdate(Entity *shot, f32 dt) {
-    if (shot->frame_idx == 2) {
-        shot->anchor.y += dt * shot->velocity.y;
-    }
-    else if (shot->frame_idx > 2) {
-        shot->anchor.y += dt * shot->velocity.y;
-    }
-    shot->ani_rect.x = shot->anchor.x;
-    shot->ani_rect.y = shot->anchor.y;
-    shot->frame_elapsed += dt;
-}
-
-
-void ShipUpdate(Entity *ship, f32 dt) {
-    ship->facing_left = false;
-    ship->stt = ES_SHIP_IDLE;
-
-    f32 speed = 0.4f;
-
-    if (IsKeyDown(KEY_LEFT)) {
-        ship->stt = ES_SHIP_LEFT;
-        ship->facing_left = true;
-
-        ship->anchor.x -= speed * dt;
-    }
-    else if (IsKeyDown(KEY_RIGHT)) {
-        ship->stt = ES_SHIP_RIGHT;
-
-        ship->anchor.x += speed * dt;
-    }
-
-    if (IsKeyDown(KEY_UP)) {
-        ship->anchor.y -= speed * dt;
-    }
-    else if (IsKeyDown(KEY_DOWN)) {
-        ship->anchor.y += speed * dt;
-    }
-    ship->Update(dt);
-
-
-    if (IsKeyPressed(KEY_SPACE)) {
-        Entity shot = ShotCreate();
-        shot.anchor = ship->anchor;
-        shot.anchor.y -= 4;
-        shot.anchor.x += 32;
-        shot.Update(0);
-        entities.Add(shot);
-    }
-
-}
-
-Frame ShipGetFrame(Entity *ship) {
-    if (ship->stt == ES_SHIP_IDLE) {
-        ship->ani_idx = 0;
-    }
-    else {
-        ship->ani_idx = 1;
-    }
-
-    Animation ani = animations.arr[ship->ani_idx0 + ship->ani_idx];
-    Frame frame = ani.frames.arr[ship->frame_idx];
-
-    if (ship->stt == ES_SHIP_LEFT) {
-        return frame.Mirror();
-    }
-    else {
-        return frame;
-    }
-}
-
 void FrameDrawAndSwap() {
     BeginDrawing();
     ClearBackground(BLACK);
 
-    Frame frame = background.GetFrame(animations);
-    Entity *ent = &background;
-    DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+    EntityDraw(animations, &background);
 
     for (s32 i = 0; i < entities.len; ++i) {
-        ent = entities.arr + i;
+        Entity *ent = entities.arr + i;
         if (IsAsteroid(ent->tpe)) {
-            frame = ent->GetFrame(animations);
-            DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+            EntityDraw(animations, ent);
         }
         else if (ent->tpe == ET_SHOOT) {
-            frame = ShotGetFrame(ent);
-            DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+            ShotDraw(ent);
         }
         else if (ent->tpe == ET_SHIP) {
-            frame = ShipGetFrame(ent);
-            DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+            ShipDraw(ent);
         }
     }
 
-    frame = mask.GetFrame(animations);
-    ent = &mask;
-    DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+    EntityDraw(animations, &mask);
 
     EndDrawing();
 
@@ -243,17 +138,9 @@ void FrameDrawAndSwap() {
     entities_next.len = 0;
 }
 
-
 void FrameUpdate() {
+    // NOTE: ship_delta_vy is the ship speed relative to the "ambient" asteroids
     f32 ship_delta_vy = 0;
-    /*
-    if (IsKeyPressed(KEY_UP)) {
-        ship_delta_vy = 0.1f;
-    }
-    else if (IsKeyPressed(KEY_DOWN)) {
-        ship_delta_vy = - 0.1f;
-    }
-    */
     ship_vy += ship_delta_vy;
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -267,12 +154,8 @@ void FrameUpdate() {
         Entity *ent = entities.arr + i;
 
         if (IsAsteroid(ent->tpe)) {
-            ent->rot += dt * ent->vrot;
-            ent->anchor.x += dt * ent->velocity.x;
-            ent->anchor.y += dt * ent->velocity.y;
-            ent->ani_rect.x = ent->anchor.x;
-            ent->ani_rect.y = ent->anchor.y;
-            ent->velocity.y += ship_delta_vy;
+            ent->Update(dt);
+            ent->anchor.y += dt * ship_vy;
 
             if (ent->anchor.x < mask_left
                 || ent->anchor.y < - ent->ani_rect.height
@@ -280,7 +163,7 @@ void FrameUpdate() {
                 || ent->anchor.y > screen_h + ent->ani_rect.height)
             {
                 if (ent->anchor.y < 0) {
-                    // above window
+                    // above window, let it run
                 }
                 else {
                     // out of window - don't copy to next frame // 
@@ -293,10 +176,6 @@ void FrameUpdate() {
         }
         else if (ent->tpe == ET_SHOOT) {
             ShotUpdate(ent, dt);
-
-            if (ent->anchor.y < -200) {
-                ent->deleted = true;
-            }
         }
         else if (ent->tpe == ET_SHIP) {
             ShipUpdate(ent, dt);
@@ -304,7 +183,7 @@ void FrameUpdate() {
     }
 
     // spawn
-    SpawnAsteroids(&entities, dt, ship_vy);
+    SpawnAsteroids(&entities, dt);
 }
 
 void Run() {

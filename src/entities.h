@@ -123,38 +123,37 @@ struct Entity {
     f32 frame_elapsed;
 
     void Update(f32 dt) {
+        rot += dt * vrot;
         anchor.x += dt * velocity.x;
         anchor.y += dt * velocity.y;
 
-        ani_rect.x = anchor.x + ani_offset.x;
-        ani_rect.y = anchor.y + ani_offset.y;
+        ani_rect.x = anchor.x;
+        ani_rect.y = anchor.y;
 
         coll_rect.x = anchor.x + coll_offset.x;
         coll_rect.y = anchor.y + coll_offset.y;
     }
-
-    Frame GetFrame(Array<Animation> animations) {
-        Animation ani = animations.arr[ani_idx0 + ani_idx];
-        Frame frame = ani.frames.arr[frame_idx];
-
-        if (frame.duration == 0) {
-            return frame;
-        }
-
-        if (frame_elapsed > frame.duration) {
-            frame_elapsed = 0;
-            frame_idx = (frame_idx + 1) % ani.frames.len;
-            frame = ani.frames.arr[frame_idx];
-        }
-
-        if (facing_left) {
-            return frame.Mirror();
-        }
-        else {
-            return frame;
-        }
-    }
 };
+
+void EntityDraw(Array<Animation> animations, Entity *ent) {
+    Animation ani = animations.arr[ent->ani_idx0 + ent->ani_idx];
+    Frame frame = ani.frames.arr[ent->frame_idx];
+
+    if (frame.duration == 0) {
+    }
+
+    else if (ent->frame_elapsed > frame.duration) {
+        ent->frame_elapsed = 0;
+        ent->frame_idx = (ent->frame_idx + 1) % ani.frames.len;
+        frame = ani.frames.arr[ent->frame_idx];
+    }
+
+    if (ent->facing_left) {
+        frame = frame.Mirror();
+    }
+
+    DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+}
 
 void UnloadTextures(Array<Animation> animations) {
     for (s32 i = 0; i < animations.len; ++i) {
@@ -163,7 +162,7 @@ void UnloadTextures(Array<Animation> animations) {
 }
 
 Entity CreateEntity(EntityType tpe, Array<Animation> animations, bool select_random = true) {
-    // sets as many things as possible on the entity of type tpe, for single-frame and animated entities
+    // sets as many fields as possible on a generic Entity
 
     for (s32 i = 0; i < animations.len; ++i) {
         Animation *ani = animations.arr + i;
@@ -200,6 +199,8 @@ Entity CreateEntity(EntityType tpe, Array<Animation> animations, bool select_ran
             return ent;
         }
     }
+
+    return {};
 }
 
 

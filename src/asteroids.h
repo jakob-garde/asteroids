@@ -3,11 +3,11 @@
 
 
 #include "memory.h"
-#include "types.h"
+#include "globals.h"
 #include "entities.h"
 
 
-Entity CreateAsteroid(EntityType tpe, f32 ship_vy, bool on_screen = false) {
+Entity CreateAsteroid(EntityType tpe, bool on_screen = false) {
     Entity ast = CreateEntity(tpe, animations);
 
     if (on_screen) {
@@ -22,7 +22,7 @@ Entity CreateAsteroid(EntityType tpe, f32 ship_vy, bool on_screen = false) {
     }
 
     f32 vx = GetRandomValue(-100, 100) / 700.0f;
-    f32 vy = GetRandomValue(-100, 100) / 700.0f + ship_vy;
+    f32 vy = GetRandomValue(-100, 100) / 700.0f;
     ast.velocity = { vx, vy };
 
     ast.rot = GetRandomValue(-100, 100);
@@ -38,15 +38,15 @@ bool DoSpawn(f32 dt, f32 vy, f32 rate) {
     return result;
 }
 
-void SpawnAsteroids(Array<Entity> *entities, f32 dt, f32 vy) {
+void SpawnAsteroids(Array<Entity> *entities, f32 dt) {
     f32 rate_small = 16; // asteroids per second
     f32 rate_med = 2;
 
-    if (DoSpawn(dt, vy, rate_small)) {
-        entities->AddSafe( CreateAsteroid(ET_AST_SMALL, vy) );
+    if (DoSpawn(dt, ship_vy, rate_small)) {
+        entities->AddSafe( CreateAsteroid(ET_AST_SMALL) );
     }
-    if (DoSpawn(dt, vy, rate_med)) {
-        entities->AddSafe( CreateAsteroid(ET_AST_MED, vy) );
+    if (DoSpawn(dt, ship_vy, rate_med)) {
+        entities->AddSafe( CreateAsteroid(ET_AST_MED) );
     }
 }
 
@@ -55,9 +55,9 @@ void SpawnStartupAsteroids(Array<Entity> *entities, f32 vy) {
     f32 rate_med = 2;
 
     for (s32 i = 0; i < rate_small; ++i) 
-        entities->AddSafe( CreateAsteroid(ET_AST_SMALL, vy, true) );
+        entities->AddSafe( CreateAsteroid(ET_AST_SMALL, true) );
     for (s32 i = 0; i < rate_med; ++i)
-        entities->AddSafe( CreateAsteroid(ET_AST_MED, vy, true) );
+        entities->AddSafe( CreateAsteroid(ET_AST_MED, true) );
 }
 
 bool IsAsteroid(EntityType tpe) {

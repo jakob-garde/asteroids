@@ -9,18 +9,6 @@
 #define ARENA_CAP 1024 * 1024 * 64
 u8 arena_mem[ARENA_CAP];
 
-/*
-enum GameState {
-    GS_TITLE,
-    GS_GAME,
-    GS_END,
-};
-struct AsteroidGame {
-    GameState state;
-};
-AsteroidGame game;
-*/
-
 Array<Animation> animations;
 Array<Entity> entities;
 Array<Entity> entities_next;
@@ -34,8 +22,6 @@ f32 ship_vy = 0.3f;
 
 Entity background;
 Entity mask;
-
-
 
 
 #endif
