@@ -1,8 +1,10 @@
 #include "raylib.h"
 
+// generic
 #include "memory.h"
 #include "entities.h"
 
+// specific to this game
 #include "globals.h"
 #include "asteroids.h"
 #include "ship.h"
@@ -19,6 +21,17 @@ struct AsteroidGame {
 };
 AsteroidGame game;
 */
+
+
+Array<SEffect> LoadSoundEffects(MArena *a_dest) {
+    sounds = InitArray<SEffect>(a_dest, 64);
+
+    sounds.Add( InitSoundEffect("resources/shoot.wav", SE_SHOOT) );
+    sounds.Add( InitSoundEffect("resources/explosion.wav", SE_EXPLOSION) );
+    sounds.Add( InitSoundEffect("resources/crash.wav", SE_CRASH) );
+
+    return sounds;
+}
 
 
 Array<Animation> LoadAssets(MArena *a_dest) {
@@ -54,6 +67,7 @@ Array<Animation> LoadAssets(MArena *a_dest) {
 void Init() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroids");
+    InitAudioDevice();
     ToggleFullscreen();
     SetTargetFPS(60);
 
@@ -64,7 +78,9 @@ void Init() {
     MArena a = ArenaCreate(arena_mem, ARENA_CAP);
     entities_next = InitArray<Entity>(&a, 256);
     entities = InitArray<Entity>(&a, 256);
+
     animations = LoadAssets(&a);
+    sounds = LoadSoundEffects(&a);
 
     // notebook background
     background = CreateEntity(ET_AST_BACKGROUND, animations);
@@ -104,6 +120,7 @@ void Init() {
 
 void Close() {
     UnloadTextures(animations);
+    UnloadSounds(sounds);
     CloseWindow();
 }
 
@@ -148,6 +165,7 @@ void FrameDrawAndSwap() {
 
 void FrameUpdate() {
     if (IsKeyPressed(KEY_R)) {
+
         for (s32 i = 0; i < entities.len; ++i) {
             Entity *ent = entities.arr + i;
             if (ent->tpe == ET_SHIP) {

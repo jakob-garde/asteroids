@@ -32,7 +32,6 @@ enum EntityAnimationState {
     ES_SHIP_CRASH,
 };
 
-
 struct Frame {
     Rectangle source;
     s32 duration;
@@ -223,6 +222,41 @@ Entity CreateEntity(EntityType tpe, Array<Animation> animations, bool select_ran
     }
 
     return {};
+}
+
+
+enum SoundType {
+    SE_EXPLOSION,
+    SE_SHOOT,
+    SE_CRASH,
+};
+
+struct SEffect {
+    SoundType tpe;
+    Sound sound;
+};
+
+SEffect InitSoundEffect(const char *filename, SoundType tpe) {
+    SEffect sfx = {};
+    sfx.tpe = tpe;
+    sfx.sound = LoadSound(filename);
+
+    return sfx;
+}
+
+void UnloadSounds(Array<SEffect> snds) {
+    for (s32 i = 0; i < snds.len; ++i) {
+        UnloadSound(snds.arr[i].sound);
+    }
+}
+
+void PlaySoundEffect(SoundType tpe, Array<SEffect> sfxs) {
+    for (s32 i = 0; i < sfxs.len; ++i) {
+        SEffect sfx = sfxs.arr[i];
+        if (sfx.tpe == tpe) {
+            PlaySound(sfx.sound);
+        }
+    }
 }
 
 

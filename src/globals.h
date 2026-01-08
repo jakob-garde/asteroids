@@ -12,6 +12,7 @@ u8 arena_mem[ARENA_CAP];
 Array<Animation> animations;
 Array<Entity> entities;
 Array<Entity> entities_next;
+Array<SEffect> sounds;
 
 f32 screen_w;
 f32 screen_h;

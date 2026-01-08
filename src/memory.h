@@ -149,13 +149,14 @@ f32 RandPM1() {
     return randnum;
 }
 
-f32 RandBin() {
-    return RandPM1() >= 0;
+bool RandBin() {
+    u64 num =  Kiss_Random(g_kiss_randstate) % 2;
+    return num == 1;
 }
 
-s32 Rand(s32 max) {
+s32 Rand(u64 max) {
     u64 num =  Kiss_Random(g_kiss_randstate) % max;
-    return num;
+    return (s32) num;
 }
 
 #endif

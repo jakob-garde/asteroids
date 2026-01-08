@@ -51,6 +51,8 @@ void ShotUpdate(Entity *ent, f32 dt) {
                         sml.velocity = { vx, vy };
                         entities.Add( sml );
                     }
+
+                    PlaySoundEffect(SE_EXPLOSION, sounds);
                 }
 
                 ent->deleted = true;
@@ -115,6 +117,8 @@ void ShipUpdate(Entity *ent, f32 dt) {
 
             if (CheckCollisionCircles(ast->position, ast->coll_radius, ent->position, ent->coll_radius)) {
                 crash = true;
+                PlaySoundEffect(SE_CRASH, sounds);
+
                 break;
             }
         }
@@ -164,8 +168,8 @@ void ShipUpdate(Entity *ent, f32 dt) {
     if (IsKeyPressed(KEY_SPACE)) {
         Entity shot = ShotCreate();
         shot.position = ent->position;
-        shot.position.y -= 4;
-        shot.Update(0);
+        shot.position.y -= 32;
+        PlaySoundEffect(SE_SHOOT, sounds);
 
         entities.Add(shot);
     }
