@@ -13,26 +13,25 @@ Entity ShotCreate() {
     Entity ent = CreateEntity(ET_SHOOT, animations);
     ent.stt = ES_SHOOT_CHARGE;
 
-    ent.anchor = { (f32) GetMouseX(), (f32) GetMouseY() };
+    ent.position = { (f32) GetMouseX(), (f32) GetMouseY() };
     ent.ani_offset.y = ent.ani_rect.height;
     ent.velocity.y = -0.9;
-    ent.Update(0);
 
     return ent;
 }
 
 void ShotUpdate(Entity *ent, f32 dt) {
     if (ent->frame_idx == 2) {
-        ent->anchor.y += dt * ent->velocity.y;
+        ent->position.y += dt * ent->velocity.y;
     }
     else if (ent->frame_idx > 2) {
-        ent->anchor.y += dt * ent->velocity.y;
+        ent->position.y += dt * ent->velocity.y;
     }
-    ent->ani_rect.x = ent->anchor.x;
-    ent->ani_rect.y = ent->anchor.y;
+    ent->ani_rect.x = ent->position.x;
+    ent->ani_rect.y = ent->position.y;
     ent->frame_elapsed += dt;
 
-    if (ent->anchor.y < -200) {
+    if (ent->position.y < -200) {
         ent->deleted = true;
     }
 }
@@ -65,9 +64,8 @@ Entity ShiptCreate() {
     Entity ent = CreateEntity(ET_SHIP, animations, false);
 
     ent.stt = ES_SHIP_IDLE;
-    ent.anchor.x = (mask_left + mask_right) / 2;
-    ent.anchor.y = screen_h - 256;
-    ent.Update(0);
+    ent.position.x = (mask_left + mask_right) / 2;
+    ent.position.y = screen_h - 256;
 
     return ent;
 }
@@ -95,28 +93,28 @@ void ShipUpdate(Entity *ent, f32 dt) {
         ent->stt = ES_SHIP_LEFT;
         ent->facing_left = true;
 
-        ent->anchor.x -= speed * dt;
+        ent->position.x -= speed * dt;
     }
     else if (IsKeyDown(KEY_RIGHT)) {
         ent->stt = ES_SHIP_RIGHT;
         ent->facing_left = false;
 
-        ent->anchor.x += speed * dt;
+        ent->position.x += speed * dt;
     }
 
     if (IsKeyDown(KEY_UP)) {
-        ent->anchor.y -= speed * dt;
+        ent->position.y -= speed * dt;
     }
     else if (IsKeyDown(KEY_DOWN)) {
-        ent->anchor.y += speed * dt;
+        ent->position.y += speed * dt;
     }
     ent->Update(dt);
 
     if (IsKeyPressed(KEY_SPACE)) {
         Entity shot = ShotCreate();
-        shot.anchor = ent->anchor;
-        shot.anchor.y -= 4;
-        shot.anchor.x += 32;
+        shot.position = ent->position;
+        shot.position.y -= 4;
+        shot.position.x += 32;
         shot.Update(0);
 
         entities.Add(shot);

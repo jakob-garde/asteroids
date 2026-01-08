@@ -101,10 +101,11 @@ struct Entity {
     EntityAnimationState stt;
     s32 facing_left;
     s32 state;
-    s32 deleted;
+    bool deleted;
+    bool disable_debug_draw;
 
     // kinematics
-    Vector2 anchor;
+    Vector2 position;
     Vector2 velocity;
     f32 rot;
     f32 vrot;
@@ -123,16 +124,32 @@ struct Entity {
 
     void Update(f32 dt) {
         rot += dt * vrot;
-        anchor.x += dt * velocity.x;
-        anchor.y += dt * velocity.y;
+        position.x += dt * velocity.x;
+        position.y += dt * velocity.y;
 
-        ani_rect.x = anchor.x;
-        ani_rect.y = anchor.y;
+        ani_rect.x = position.x;
+        ani_rect.y = position.y;
 
-        coll_rect.x = anchor.x + coll_offset.x;
-        coll_rect.y = anchor.y + coll_offset.y;
+        coll_rect.x = position.x + coll_offset.x;
+        coll_rect.y = position.y + coll_offset.y;
     }
 };
+
+void EntityDrawDebug(Entity *ent) {
+    if (ent->disable_debug_draw) {
+        return;
+    }
+
+    Rectangle anirect = ent->ani_rect;
+    anirect.x -= ent->ani_offset.x;
+    anirect.y -= ent->ani_offset.y;
+    DrawRectangleLinesEx(anirect, 4, BLUE);
+
+    DrawRectangleLinesEx(ent->coll_rect, 2, RED);
+    DrawCircleLinesV(ent->position, ent->coll_radius, BLACK);
+
+    DrawCircleV(ent->position, 2, RED);
+}
 
 void EntityDraw(Array<Animation> animations, Entity *ent) {
     Animation ani = animations.arr[ent->ani_idx0 + ent->ani_idx];
@@ -188,12 +205,16 @@ Entity CreateEntity(EntityType tpe, Array<Animation> animations, bool select_ran
             if (select_random && ani->frames.len == 1) {
                 ent.ani_idx0 += GetRandomValue(0, ani->group_sz - 1);
             }
+
             ent.ani_cnt = ani->frames.len;
             ent.ani_offset = { ani->frame_w / 2.0f, ani->frame_h / 2.0f };
-            ent.ani_rect = { ent.anchor.x, ent.anchor.y, 1.0f * ani->frame_w, 1.0f * ani->frame_h };
-            ent.coll_offset = { ani->frame_w / 2.0f, ani->frame_h / 2.0f };
-            ent.coll_rect = { ent.anchor.x, ent.anchor.y, 1.0f * ani->frame_w, 1.0f * ani->frame_h };
-            ent.coll_radius = fmin( ani->frame_w, ani->frame_h );
+            ent.ani_rect = { 0, 0, 1.0f * ani->frame_w, 1.0f * ani->frame_h };
+
+            ent.coll_offset = { -0.5f * ani->frame_w, -0.5f * ani->frame_h };
+            ent.coll_rect = { 0, 0, 1.0f * ani->frame_w, 1.0f * ani->frame_h };
+
+            ent.coll_radius = fmin( ani->frame_w / 2, ani->frame_h / 2 );
+            ent.Update(0);
 
             return ent;
         }

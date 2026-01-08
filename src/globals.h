@@ -23,5 +23,7 @@ f32 ship_vy = 0.3f;
 Entity background;
 Entity mask;
 
+bool pause;
+bool debug;
 
 #endif

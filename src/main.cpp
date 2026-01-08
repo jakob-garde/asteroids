@@ -67,6 +67,7 @@ void Init() {
 
     // notebook background
     background = CreateEntity(ET_AST_BACKGROUND, animations);
+    background.disable_debug_draw = true;
 
     Frame frm = animations.arr[background.ani_idx0].frames.arr[0];
     f32 aspect = 1.0f * frm.source.width / frm.source.height;
@@ -80,6 +81,7 @@ void Init() {
 
     // notebook mask
     mask = CreateEntity(ET_AST_BACKGROUND_MASK, animations);
+    mask.disable_debug_draw = true;
 
     mask.ani_offset = { 0, 0 };
     mask.ani_rect.width = screen_h * aspect;
@@ -119,6 +121,10 @@ void FrameDrawAndSwap() {
         else if (ent->tpe == ET_SHIP) {
             ShipDraw(ent);
         }
+
+        if (debug) {
+            EntityDrawDebug(ent);
+        }
     }
 
     EntityDraw(animations, &mask);
@@ -140,6 +146,16 @@ void FrameDrawAndSwap() {
 }
 
 void FrameUpdate() {
+    if (IsKeyPressed(KEY_D)) {
+        debug = !debug;
+    }
+    if (IsKeyPressed(KEY_P)) {
+        pause = !pause;
+    }
+    if (pause) {
+        return;
+    }
+
     // NOTE: ship_delta_vy is the ship speed relative to the "ambient" asteroids
     f32 ship_delta_vy = 0;
     ship_vy += ship_delta_vy;
@@ -149,30 +165,30 @@ void FrameUpdate() {
     }
 
     // update
-    s32 asteroid_fcnt = 0;
     f32 dt = GetFrameTime() * 1000;
+
+    // spawn
+    SpawnAsteroids(&entities, dt);
+
     for (s32 i = 0; i < entities.len; ++i) {
         Entity *ent = entities.arr + i;
 
         if (IsAsteroid(ent->tpe)) {
+            ent->position.y += dt * ship_vy;
             ent->Update(dt);
-            ent->anchor.y += dt * ship_vy;
 
-            if (ent->anchor.x < mask_left
-                || ent->anchor.y < - ent->ani_rect.height
-                || ent->anchor.x > mask_right
-                || ent->anchor.y > screen_h + ent->ani_rect.height)
+            if (ent->position.x < mask_left
+                || ent->position.y < - ent->ani_rect.height
+                || ent->position.x > mask_right
+                || ent->position.y > screen_h + ent->ani_rect.height)
             {
-                if (ent->anchor.y < 0) {
+                if (ent->position.y < 0) {
                     // above window, let it run
                 }
                 else {
                     // out of window - don't copy to next frame // 
                     ent->deleted = true;
                 }
-            }
-            else {
-                asteroid_fcnt++;
             }
         }
         else if (ent->tpe == ET_SHOOT) {
@@ -182,9 +198,6 @@ void FrameUpdate() {
             ShipUpdate(ent, dt);
         }
     }
-
-    // spawn
-    SpawnAsteroids(&entities, dt);
 }
 
 void Run() {

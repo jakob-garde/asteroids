@@ -13,12 +13,12 @@ Entity CreateAsteroid(EntityType tpe, bool on_screen = false) {
     if (on_screen) {
         f32 x = GetRandomValue(0, GetScreenWidth() - 1);
         f32 y = GetRandomValue(0, GetScreenHeight() - 1);
-        ast.anchor = { x, y };
+        ast.position = { x, y };
     }
     else {
         f32 x = GetRandomValue(0, GetScreenWidth() - 1);
         f32 y = GetRandomValue(-512, -64);
-        ast.anchor = { x, y };
+        ast.position = { x, y };
     }
 
     f32 vx = GetRandomValue(-100, 100) / 700.0f;
@@ -27,7 +27,6 @@ Entity CreateAsteroid(EntityType tpe, bool on_screen = false) {
 
     ast.rot = GetRandomValue(-100, 100);
     ast.vrot = GetRandomValue(-100, 100) / 300.0f;
-    ast.Update(0);
 
     return ast;
 }
@@ -51,7 +50,7 @@ void SpawnAsteroids(Array<Entity> *entities, f32 dt) {
 }
 
 void SpawnStartupAsteroids(Array<Entity> *entities, f32 vy) {
-    f32 rate_small = 16; // asteroids per second
+    f32 rate_small = 16;
     f32 rate_med = 2;
 
     for (s32 i = 0; i < rate_small; ++i) 
