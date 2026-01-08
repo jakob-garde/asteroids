@@ -153,4 +153,9 @@ f32 RandBin() {
     return RandPM1() >= 0;
 }
 
+s32 Rand(s32 max) {
+    u64 num =  Kiss_Random(g_kiss_randstate) % max;
+    return num;
+}
+
 #endif

@@ -108,7 +108,6 @@ void Close() {
 void FrameDrawAndSwap() {
     BeginDrawing();
     ClearBackground(BLACK);
-
     EntityDraw(animations, &background);
 
     for (s32 i = 0; i < entities.len; ++i) {
@@ -129,7 +128,6 @@ void FrameDrawAndSwap() {
     }
 
     EntityDraw(animations, &mask);
-
     EndDrawing();
 
     for (s32 i = 0; i < entities.len; ++i) {
@@ -188,9 +186,17 @@ void FrameUpdate() {
         Entity *ent = entities.arr + i;
 
         if (IsAsteroid(ent->tpe)) {
-            ent->position.y += dt * ship_vy;
+            if (ent->disable_vy == false) {
+                ent->position.y += dt * ship_vy;
+            }
             ent->Update(dt);
 
+            if (ent->life > 0) {
+                ent->life--;
+                ent->deleted = ent->life == 0;
+            }
+
+            // clip
             if (ent->position.x < mask_left
                 || ent->position.y < - ent->ani_rect.height
                 || ent->position.x > mask_right

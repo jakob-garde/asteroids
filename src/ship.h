@@ -31,6 +31,34 @@ void ShotUpdate(Entity *ent, f32 dt) {
     ent->ani_rect.y = ent->position.y;
     ent->frame_elapsed += dt;
 
+    for (s32 i = 0; i < entities.len; ++i) {
+        Entity *ast = entities.arr + i;
+        if (IsAsteroid(ast->tpe)) {
+
+            if (CheckCollisionPointCircle(ent->position, ast->position, ast->coll_radius)) {
+                if (ast->tpe == ET_AST_SMALL) {
+                    ast->deleted = true;
+                }
+                else if (ast->tpe == ET_AST_MED) {
+                    ast->deleted = true;
+                    for (s32 i = 0; i < 16; ++i) {
+                        Entity sml = CreateAsteroid(ET_AST_SMALL);
+                        sml.disable_vy = true;
+                        sml.position = ast->position;
+                        sml.life = Rand(60) + 10 * i; // number of frames
+                        f32 vx = GetRandomValue(-100, 100) / 2000.0f;
+                        f32 vy = GetRandomValue(-100, 100) / 2000.0f;
+                        sml.velocity = { vx, vy };
+                        entities.Add( sml );
+                    }
+                }
+
+                ent->deleted = true;
+                break;
+            }
+        }
+    }
+
     if (ent->position.y < -200) {
         ent->deleted = true;
     }
@@ -129,7 +157,6 @@ void ShipUpdate(Entity *ent, f32 dt) {
         Entity shot = ShotCreate();
         shot.position = ent->position;
         shot.position.y -= 4;
-        shot.position.x += 32;
         shot.Update(0);
 
         entities.Add(shot);

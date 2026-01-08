@@ -103,6 +103,8 @@ struct Entity {
     s32 state;
     bool deleted;
     bool disable_debug_draw;
+    bool disable_vy;
+    s32 life;
 
     // kinematics
     Vector2 position;
