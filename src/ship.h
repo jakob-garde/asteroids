@@ -90,7 +90,7 @@ void ShotDraw(Entity *ent) {
     DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
 }
 
-Entity ShiptCreate() {
+Entity ShipCreate() {
     Entity ent = CreateEntity(ET_SHIP, animations, false);
 
     ent.stt = ES_SHIP_IDLE;

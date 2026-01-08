@@ -64,25 +64,34 @@ Array<Animation> LoadAssets(MArena *a_dest) {
 }
 
 
+Music music;
+
 void Init() {
+    // raylib
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroids");
     InitAudioDevice();
     ToggleFullscreen();
     SetTargetFPS(60);
-
     screen_w = GetScreenWidth();
     screen_h = GetScreenHeight();
 
+    // usr
     RandInit();
+
     MArena a = ArenaCreate(arena_mem, ARENA_CAP);
     entities_next = InitArray<Entity>(&a, 256);
     entities = InitArray<Entity>(&a, 256);
-
     animations = LoadAssets(&a);
     sounds = LoadSoundEffects(&a);
 
-    // notebook background
+    // music loop
+    music = LoadMusicStream("resources/Heartbeat.mp3");
+    PlayMusicStream(music);
+    float volume = 0.5f;
+    SetMusicVolume(music, volume);
+
+    // background
     background = CreateEntity(ET_AST_BACKGROUND, animations);
     background.disable_debug_draw = true;
 
@@ -96,7 +105,7 @@ void Init() {
     background.ani_rect.y = 0;
     entities.Add( background );
 
-    // notebook mask
+    // bckgrnd mask
     mask = CreateEntity(ET_AST_BACKGROUND_MASK, animations);
     mask.disable_debug_draw = true;
 
@@ -113,14 +122,17 @@ void Init() {
     mask_top = screen_h * 0.15f;
 
     // ship / player
-    entities.Add(ShiptCreate());
+    entities.Add(ShipCreate());
 
+    // start
     SpawnStartupAsteroids(&entities, 0);
 }
 
 void Close() {
     UnloadTextures(animations);
     UnloadSounds(sounds);
+    UnloadMusicStream(music);
+    CloseAudioDevice();
     CloseWindow();
 }
 
@@ -164,6 +176,8 @@ void FrameDrawAndSwap() {
 }
 
 void FrameUpdate() {
+    UpdateMusicStream(music);
+
     if (IsKeyPressed(KEY_R)) {
 
         for (s32 i = 0; i < entities.len; ++i) {
@@ -251,6 +265,28 @@ void Run() {
     Close();
 }
 
+
+void Test() {
+
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroids");
+    InitAudioDevice();
+
+    music = LoadMusicStream("resources/Heartbeat.ogg");
+    PlayMusicStream(music);
+    float volume = 1.0f;
+    SetMusicVolume(music, volume);
+
+    while (!WindowShouldClose()) {
+        UpdateMusicStream(music);
+        BeginDrawing();
+        EndDrawing();
+    }
+
+}
+
+
 int main(void) {
     Run();
+    //Test();
 }
