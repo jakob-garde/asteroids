@@ -11,19 +11,23 @@ Entity CreateAsteroid(EntityType tpe, bool on_screen = false) {
     Entity ast = CreateEntity(tpe, animations);
 
     if (on_screen) {
-        f32 x = GetRandomValue(0, GetScreenWidth() - 1);
-        f32 y = GetRandomValue(0, GetScreenHeight() - 1);
+        f32 x = GetRandomValue(0, GetScreenWidth());
+        f32 y = GetRandomValue(0, GetScreenHeight() / 3);
         ast.position = { x, y };
+        f32 vx = GetRandomValue(-100, 100) / 1400.0f;
+        f32 vy = GetRandomValue(-100, 100) / 1400.0f;
+        ast.velocity = { vx, vy };
+        ast.disable_vy = true;
     }
     else {
         f32 x = GetRandomValue(0, GetScreenWidth() - 1);
         f32 y = GetRandomValue(-512, -64);
         ast.position = { x, y };
+        f32 vx = GetRandomValue(-100, 100) / 700.0f;
+        f32 vy = GetRandomValue(-100, 100) / 700.0f;
+        ast.velocity = { vx, vy };
     }
 
-    f32 vx = GetRandomValue(-100, 100) / 700.0f;
-    f32 vy = GetRandomValue(-100, 100) / 700.0f;
-    ast.velocity = { vx, vy };
 
     ast.rot = GetRandomValue(-100, 100);
     ast.vrot = GetRandomValue(-100, 100) / 300.0f;

@@ -93,6 +93,8 @@ void Init() {
 
     mask_left = (screen_w - mask.ani_rect.width) / 2.0f + 32;
     mask_right = mask_left + mask.ani_rect.width - 64;
+    mask_bottom = screen_h * 0.88f;
+    mask_top = screen_h * 0.15f;
 
     // ship / player
     entities.Add(ShiptCreate());

@@ -17,8 +17,10 @@ f32 screen_w;
 f32 screen_h;
 f32 mask_left;
 f32 mask_right;
+f32 mask_top;
+f32 mask_bottom;
 
-f32 ship_vy = 0.3f;
+f32 ship_vy = 0.2f;
 
 Entity background;
 Entity mask;

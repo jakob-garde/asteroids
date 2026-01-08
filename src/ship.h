@@ -136,20 +136,28 @@ void ShipUpdate(Entity *ent, f32 dt) {
         ent->stt = ES_SHIP_LEFT;
         ent->facing_left = true;
 
-        ent->position.x -= speed * dt;
+        if (ent->position.x > mask_left) {
+            ent->position.x -= speed * dt;
+        }
     }
     else if (IsKeyDown(KEY_RIGHT)) {
         ent->stt = ES_SHIP_RIGHT;
         ent->facing_left = false;
 
-        ent->position.x += speed * dt;
+        if (ent->position.x < mask_right) {
+            ent->position.x += speed * dt;
+        }
     }
 
     if (IsKeyDown(KEY_UP)) {
-        ent->position.y -= speed * dt;
+        if (ent->position.y > mask_top) {
+            ent->position.y -= speed * dt;
+        }
     }
     else if (IsKeyDown(KEY_DOWN)) {
-        ent->position.y += speed * dt;
+        if (ent->position.y < mask_bottom) {
+            ent->position.y += speed * dt;
+        }
     }
     ent->Update(dt);
 
