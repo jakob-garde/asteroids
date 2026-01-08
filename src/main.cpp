@@ -2,8 +2,8 @@
 
 #include "memory.h"
 #include "entities.h"
-#include "globals.h"
 
+#include "globals.h"
 #include "asteroids.h"
 #include "ship.h"
 

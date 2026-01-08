@@ -3,8 +3,8 @@
 
 
 #include "memory.h"
-#include "globals.h"
 #include "entities.h"
+#include "globals.h"
 
 
 Entity CreateAsteroid(EntityType tpe, bool on_screen = false) {
