@@ -66,23 +66,38 @@ Entity ShiptCreate() {
     ent.stt = ES_SHIP_IDLE;
     ent.position.x = (mask_left + mask_right) / 2;
     ent.position.y = screen_h - 256;
+    ent.coll_radius *= 0.8f;
 
     return ent;
 }
 
 void ShipUpdate(Entity *ent, f32 dt) {
+    if (ent->stt == ES_SHIP_CRASH) {
+        ent->Update(dt);
+
+        return;
+    }
+
     f32 speed = 0.4f;
 
-    if (IsKeyPressed(KEY_TAB)) {
+    bool crash = false;
+    for (s32 i = 0; i < entities.len; ++i) {
+        Entity *ast = entities.arr + i;
+        if (IsAsteroid(ast->tpe)) {
+
+            if (CheckCollisionCircles(ast->position, ast->coll_radius, ent->position, ent->coll_radius)) {
+                crash = true;
+                break;
+            }
+        }
+    }
+
+    if (IsKeyPressed(KEY_TAB) || crash) {
         ent->stt = ES_SHIP_CRASH;
         ent->facing_left = RandBin();
         ent->vrot = 0.05f * RandPM1();
         ent->velocity.x = RandPM1() * 0.1f;
         ent->velocity.y = RandPM1() * 0.1f;
-    }
-
-    if (ent->stt == ES_SHIP_CRASH) {
-        ent->Update(dt);
 
         return;
     }

@@ -50,6 +50,7 @@ Array<Animation> LoadAssets(MArena *a_dest) {
     return animations;
 }
 
+
 void Init() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroids");
@@ -146,6 +147,19 @@ void FrameDrawAndSwap() {
 }
 
 void FrameUpdate() {
+    if (IsKeyPressed(KEY_R)) {
+        for (s32 i = 0; i < entities.len; ++i) {
+            Entity *ent = entities.arr + i;
+            if (ent->tpe == ET_SHIP) {
+                ent->stt = ES_SHIP_IDLE;
+                ent->vrot = 0;
+                ent->rot = 0;
+                ent->velocity = {};
+                break;
+            }
+        }
+
+    }
     if (IsKeyPressed(KEY_D)) {
         debug = !debug;
     }
