@@ -56,6 +56,9 @@ Array<Animation> LoadAssets(MArena *a_dest) {
     animations.Add( InitAnimation(a_dest, "resources/ast_brutal_01.png", ET_AST_BRUTAL, 0, 2) );
     animations.Add( InitAnimation(a_dest, "resources/ast_brutal_02.png", ET_AST_BRUTAL, 1, 2) );
 
+    animations.Add( InitAnimation(a_dest, "resources/expl_01.png", ET_EXPLOSION_SMALL, 0, 1) );
+    animations.Add( InitAnimation(a_dest, "resources/expl_02.png", ET_EXPLOSION_MED, 0, 1) );
+
     animations.Add( InitAnimation(a_dest, "resources/ship_idle.png", ET_SHIP, 0, 3) );
     animations.Add( InitAnimation(a_dest, "resources/ship_side.png", ET_SHIP, 1, 3) );
     animations.Add( InitAnimation(a_dest, "resources/ship_crash.png", ET_SHIP, 2, 3) );
@@ -63,7 +66,6 @@ Array<Animation> LoadAssets(MArena *a_dest) {
 
     return animations;
 }
-
 
 Music music;
 
@@ -136,8 +138,8 @@ void Init() {
     king.coll_rect.height *= kingscale;
     king.coll_offset.x *= kingscale;
     king.coll_offset.y *= kingscale;
-    king.coll_radius *= kingscale * 0.9f;
-    king.position = { screen_w / 2.0f, screen_h + 20 };
+    king.coll_radius *= kingscale;
+    king.position = { screen_w / 2.0f, screen_h + 8 };
     king.Update(0);
     entities.Add(king);
 
@@ -173,6 +175,12 @@ void FrameDrawAndSwap() {
             EntityDraw(animations, ent);
         }
 
+
+        else {
+            // DBG
+            EntityDraw(animations, ent);
+        }
+
         if (debug) {
             EntityDrawDebug(ent);
         }
@@ -198,6 +206,14 @@ void FrameDrawAndSwap() {
 
 void FrameUpdate() {
     UpdateMusicStream(music);
+
+    /*
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        Vector2 pos = GetMousePosition();
+        // 
+    }
+    */
+
 
     if (IsKeyPressed(KEY_R)) {
 
@@ -240,16 +256,16 @@ void FrameUpdate() {
     for (s32 i = 0; i < entities.len; ++i) {
         Entity *ent = entities.arr + i;
 
+        if (ent->life > 0) {
+            ent->life--;
+            ent->deleted = ent->life == 0;
+        }
+
         if (IsAsteroid(ent->tpe)) {
             if (ent->disable_vy == false) {
                 ent->position.y += dt * ship_vy;
             }
             ent->Update(dt);
-
-            if (ent->life > 0) {
-                ent->life--;
-                ent->deleted = ent->life == 0;
-            }
 
             // clip
             if (ent->position.x < mask_left
@@ -271,6 +287,12 @@ void FrameUpdate() {
         }
         else if (ent->tpe == ET_SHIP) {
             ShipUpdate(ent, dt);
+        }
+        else if (ent->tpe == ET_KING) {
+            KingUpdate(ent, dt);
+        }
+        else if (ent->tpe == ET_EXPLOSION_MED) {
+            ent->Update(dt);
         }
     }
 }

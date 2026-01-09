@@ -101,6 +101,24 @@ Entity ShipCreate() {
     return ent;
 }
 
+void KingUpdate(Entity *ent, f32 dt) {
+    for (s32 i = 0; i < entities.len; ++i) {
+        Entity *ast = entities.arr + i;
+        if (ast->tpe == ET_AST_SMALL) {
+            if (CheckCollisionCircles(ast->position, ast->coll_radius, ent->position, ent->coll_radius)) {
+                ast->deleted = true;
+
+                Entity exp = CreateEntity(ET_EXPLOSION_MED, animations);
+                exp.position = ast->position;
+                exp.velocity = { ast->velocity.x * 0.05f, (ast->velocity.y + ship_vy) * 0.05f };
+                exp.life = 60;
+                exp.Update(0);
+                entities.Add(exp);
+            }
+        }
+    }
+}
+
 void ShipUpdate(Entity *ent, f32 dt) {
     if (ent->stt == ES_SHIP_CRASH) {
         ent->Update(dt);
