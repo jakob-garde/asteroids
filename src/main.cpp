@@ -59,6 +59,7 @@ Array<Animation> LoadAssets(MArena *a_dest) {
     animations.Add( InitAnimation(a_dest, "resources/ship_idle.png", ET_SHIP, 0, 3) );
     animations.Add( InitAnimation(a_dest, "resources/ship_side.png", ET_SHIP, 1, 3) );
     animations.Add( InitAnimation(a_dest, "resources/ship_crash.png", ET_SHIP, 2, 3) );
+    animations.Add( InitAnimation(a_dest, "resources/kingship.png", ET_KING, 0, 1) );
 
     return animations;
 }
@@ -124,6 +125,22 @@ void Init() {
     // ship / player
     entities.Add(ShipCreate());
 
+    // kingship
+    Entity king = CreateEntity(ET_KING, animations);
+    f32 kingscale = 0.7f;
+    king.ani_rect.width *= kingscale;
+    king.ani_rect.height *= kingscale;
+    king.ani_offset.x *= kingscale;
+    king.ani_offset.y *= kingscale;
+    king.coll_rect.width *= kingscale;
+    king.coll_rect.height *= kingscale;
+    king.coll_offset.x *= kingscale;
+    king.coll_offset.y *= kingscale;
+    king.coll_radius *= kingscale * 0.9f;
+    king.position = { screen_w / 2.0f, screen_h + 20 };
+    king.Update(0);
+    entities.Add(king);
+
     // start
     SpawnStartupAsteroids(&entities, 0);
 }
@@ -152,6 +169,9 @@ void FrameDrawAndSwap() {
         else if (ent->tpe == ET_SHIP) {
             ShipDraw(ent);
         }
+        else if (ent->tpe == ET_KING) {
+            EntityDraw(animations, ent);
+        }
 
         if (debug) {
             EntityDrawDebug(ent);
@@ -159,6 +179,7 @@ void FrameDrawAndSwap() {
     }
 
     EntityDraw(animations, &mask);
+
     EndDrawing();
 
     for (s32 i = 0; i < entities.len; ++i) {

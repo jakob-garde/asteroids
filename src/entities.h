@@ -18,6 +18,7 @@ enum EntityType {
 
     ET_SHOOT,
     ET_SHIP,
+    ET_KING,
 };
 
 enum EntityAnimationState {
