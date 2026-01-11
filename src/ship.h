@@ -136,7 +136,7 @@ Entity KingCreate() {
     Entity king = CreateEntity(ET_KING, animations);
 
     king.stt = ES_KING_PHASE_1;
-    king.position = { screen_w / 2.0f, screen_h - 32 };
+    king.position = { screen_w / 2.0f, screen_h };
     king.Update(0);
     entities.Add(king);
 

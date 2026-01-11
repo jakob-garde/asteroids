@@ -76,7 +76,12 @@ void Init() {
     sounds = LoadSoundEffects(&a);
 
     // music loop
-    music_track = LoadMusicStream("resources/Heartbeat.mp3");
+    music_track = LoadMusicStream("resources/Waves.mp3");
+    //music_track = LoadMusicStream("resources/Dreams.mp3");
+    
+    // god afslutning:
+    //music_track = LoadMusicStream("resources/Nostalgia.mp3");
+    // god start:
     if (music) {
         PlayMusicStream(music_track);
     }
@@ -117,7 +122,9 @@ void Init() {
     }
 
     // kingship
-    Entity king = KingCreate();
+    Entity k = KingCreate();
+    king = FindFirstEntityByType(ET_KING, entities);
+    InitPhases(k.stt);
 
     // start
     game.SetState(GS_RESPAWN);
@@ -268,7 +275,7 @@ void FrameUpdate() {
         else if (ent->tpe == ET_SHOOT) {
             ShotUpdate(ent, dt);
         }
-        else if (game.GetState() == GS_GAME && ent->tpe == ET_SHIP) {
+        else if (ent->tpe == ET_SHIP && (game.GetState() == GS_GAME || game.GetState() == GS_END)) {
             ShipUpdate(ent, dt);
         }
         else if (ent->tpe == ET_KING) {
@@ -282,12 +289,16 @@ void FrameUpdate() {
 }
 
 void Run() {
-    InitPhases();
     Init();
 
     while (!WindowShouldClose()) {
-        FrameUpdate();
-        FrameUpdatePhase();
+        if (game.GetState() == GS_END) {
+            FrameUpdate();
+        }
+        else {
+            FrameUpdate();
+            FrameUpdatePhase();
+        }
 
         FrameDrawAndSwap();
     }

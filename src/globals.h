@@ -13,6 +13,7 @@ enum GameState {
     GS_TITLE,
     GS_GAME,
     GS_RESPAWN,
+    GS_ADVANCE,
     GS_END,
 };
 struct AsteroidGame {
@@ -48,7 +49,7 @@ f32 mask_bottom;
 
 f32 ship_vy = 0.1f;
 s32 king_advance_small = 1;
-s32 king_advance_tick = - 1;
+s32 king_advance_tick = - 2;
 s32 king_advance_med = 10;
 s32 king_advance_shoot = - 2;
 
@@ -59,7 +60,7 @@ Entity *king;
 
 bool pause;
 bool debug;
-bool music;
+bool music = true;
 
 s32 AnimationGetFirstByType(EntityType tpe) {
     for (s32 i = 0; i < animations.len; ++i) {
