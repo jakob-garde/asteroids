@@ -147,7 +147,7 @@ void ShipUpdate(Entity *ent, f32 dt) {
         ent->velocity.x = RandPM1() * 0.1f;
         ent->velocity.y = RandPM1() * 0.1f;
 
-        SetPhaseRespawn();
+        game.SetState(GS_RESPAWN);
         return;
     }
 

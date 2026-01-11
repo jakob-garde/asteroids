@@ -5,23 +5,10 @@
 #include "entities.h"
 
 // specific to this game
+#include "phase.h"
 #include "globals.h"
 #include "asteroids.h"
 #include "ship.h"
-#include "phase.h"
-
-
-/*
-enum GameState {
-    GS_TITLE,
-    GS_GAME,
-    GS_END,
-};
-struct AsteroidGame {
-    GameState state;
-};
-AsteroidGame game;
-*/
 
 
 Array<SEffect> LoadSoundEffects(MArena *a_dest) {
@@ -146,7 +133,7 @@ void Init() {
     }
 
     // start
-    SetPhaseRespawn();
+    game.SetState(GS_RESPAWN);
     SpawnStartupAsteroids(&entities, 0);
 }
 
@@ -289,10 +276,10 @@ void FrameUpdate() {
                 }
             }
         }
-        else if (phase.play && ent->tpe == ET_SHOOT) {
+        else if (game.GetState() == GS_GAME && ent->tpe == ET_SHOOT) {
             ShotUpdate(ent, dt);
         }
-        else if (phase.play && ent->tpe == ET_SHIP) {
+        else if (game.GetState() == GS_GAME && ent->tpe == ET_SHIP) {
             ShipUpdate(ent, dt);
         }
         else if (ent->tpe == ET_KING) {

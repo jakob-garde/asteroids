@@ -5,9 +5,21 @@
 #include "raylib.h"
 #include "memory.h"
 #include "entities.h"
+#include "globals.h"
 #include "asteroids.h"
 #include "ship.h"
-#include "globals.h"
+
+
+struct Phase {
+    s32 spawn_ast_small;
+    s32 spawn_ast_med;
+
+    bool respawn;
+    bool play;
+};
+
+Phase phase_play;
+Phase phase_respawn;
 
 
 void InitPhases() {
@@ -31,28 +43,34 @@ bool IsShipControlled() {
 void FrameUpdatePhase() {
     f32 dt = GetFrameTime() * 1000;
 
-    // spawn
-    SpawnAsteroids(&entities, dt, phase.spawn_ast_small, phase.spawn_ast_med);
 
-    if (phase.respawn) {
-        if (phase.elapsed == 0) {
+    if (game.GetState() == GS_RESPAWN) {
+        // spawn
+        SpawnAsteroids(&entities, dt, phase_respawn.spawn_ast_small, phase_respawn.spawn_ast_med);
+
+        if (game.phase_elapsed == 0) {
             Entity ship = ShipCreate();
             ship.position = { screen_w / 2, screen_h + ship.ani_rect.height / 2 };
             ship.velocity = { 0, -0.1f };
             entities.Add(ship);
         }
-        else if (phase.elapsed >= 60) {
-            SetPhasePlay();
-        }
-        else if (phase.elapsed >= 40 && IsShipControlled()) {
-            SetPhasePlay();
+        else if (game.phase_elapsed >= 60 || (game.phase_elapsed >= 35 && IsShipControlled())) {
+            game.SetState(GS_GAME);
+
+            ship->velocity = {};
         }
         else {
             ship->Update(dt);
         }
     }
 
-    phase.elapsed++;
+    else if (game.GetState() == GS_GAME) {
+        // spawn
+        SpawnAsteroids(&entities, dt, phase_play.spawn_ast_small, phase_play.spawn_ast_med);
+
+    }
+
+    game.phase_elapsed++;
 }
 
 
