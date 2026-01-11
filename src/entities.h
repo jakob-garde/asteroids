@@ -147,6 +147,7 @@ Entity *FindFirstEntityByType(EntityType tpe, Array<Entity> entities) {
             return ent;
         }
     }
+    return NULL;
 }
 
 void EntityDrawDebug(Entity *ent) {

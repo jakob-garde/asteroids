@@ -41,7 +41,7 @@ void ShotUpdate(Entity *ent, f32 dt) {
                 else if (ast->tpe == ET_AST_MED) {
                     ast->deleted = true;
                     for (s32 i = 0; i < 16; ++i) {
-                        Entity sml = CreateAsteroid(ET_AST_SMALL);
+                        Entity sml = CreateAsteroid(ET_AST_SMALL, 100);
                         sml.disable_vy = true;
                         sml.position = ast->position;
                         sml.life = Rand(60) + 10 * i; // number of frames

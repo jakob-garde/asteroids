@@ -7,27 +7,23 @@
 #include "globals.h"
 
 
-Entity CreateAsteroid(EntityType tpe, bool on_screen = false) {
+Entity CreateAsteroid(EntityType tpe, f32 sigma) {
     Entity ast = CreateEntity(tpe, animations);
 
-    if (on_screen) {
-        f32 x = GetRandomValue(0, GetScreenWidth());
-        f32 y = GetRandomValue(0, GetScreenHeight() / 3);
-        ast.position = { x, y };
-        f32 vx = GetRandomValue(-100, 100) / 1400.0f;
-        f32 vy = GetRandomValue(-100, 100) / 1400.0f;
-        ast.velocity = { vx, vy };
-        ast.disable_vy = true;
-    }
-    else {
-        f32 x = GetRandomValue(0, GetScreenWidth() - 1);
-        f32 y = GetRandomValue(-512, -64);
-        ast.position = { x, y };
-        f32 vx = GetRandomValue(-100, 100) / 700.0f;
-        f32 vy = GetRandomValue(-100, 100) / 700.0f;
-        ast.velocity = { vx, vy };
-    }
+    //f32 x = GetRandomValue(0, GetScreenWidth());
+    //f32 y = GetRandomValue(0, GetScreenHeight() / 3);
+    //ast.position = { x, y };
+    //f32 vx = GetRandomValue(-sigma, sigma) / 1400.0f;
+    //f32 vy = GetRandomValue(-sigma, sigma) / 1400.0f;
+    //ast.velocity = { vx, vy };
+    //ast.disable_vy = true;
 
+    f32 x = GetRandomValue(0, GetScreenWidth() - 1);
+    f32 y = -32;
+    ast.position = { x, y };
+    f32 vx = GetRandomValue(-sigma, sigma) / 700.0f;
+    f32 vy = GetRandomValue(-sigma, sigma) / 700.0f;
+    ast.velocity = { vx, vy };
 
     ast.rot = GetRandomValue(-100, 100);
     ast.vrot = GetRandomValue(-100, 100) / 300.0f;
@@ -41,12 +37,12 @@ bool DoSpawn(f32 dt, f32 vy, f32 rate) {
     return result;
 }
 
-void SpawnAsteroids(Array<Entity> *entities, f32 rate_small, f32 rate_med, f32 dt) {
+void SpawnAsteroids(Array<Entity> *entities, f32 dt, f32 rate_small, f32 rate_med) {
     if (DoSpawn(dt, ship_vy, rate_small)) {
-        entities->AddSafe( CreateAsteroid(ET_AST_SMALL) );
+        entities->AddSafe( CreateAsteroid(ET_AST_SMALL, 100.0f) );
     }
     if (DoSpawn(dt, ship_vy, rate_med)) {
-        entities->AddSafe( CreateAsteroid(ET_AST_MED) );
+        entities->AddSafe( CreateAsteroid(ET_AST_MED, 100.0f) );
     }
 }
 

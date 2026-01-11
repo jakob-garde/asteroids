@@ -11,24 +11,23 @@
 
 
 struct Phase {
-    s32 spawn_ast_small;
-    s32 spawn_ast_med;
+    f32 spawn_ast_small;
+    f32 spawn_ast_med;
 
     bool respawn;
     bool play;
 };
 
-Phase phase_play;
-Phase phase_respawn;
-
+Phase phases[3];
+s32 phase_idx = 2;
 
 void InitPhases() {
-    phase_play.spawn_ast_small = 16;
-    phase_play.spawn_ast_med = 4;
-    phase_play.play = true;
-
-    phase_respawn.respawn = true;
-    phase_respawn.play = false;
+    phases[0].spawn_ast_small = 4;
+    phases[0].spawn_ast_med = 0;
+    phases[1].spawn_ast_small = 0;
+    phases[1].spawn_ast_med = 4;
+    phases[2].spawn_ast_small = 0;
+    phases[2].spawn_ast_med = 16;
 }
 
 bool IsShipControlled() {
@@ -43,10 +42,13 @@ bool IsShipControlled() {
 void FrameUpdatePhase() {
     f32 dt = GetFrameTime() * 1000;
 
+    //Array<Phase> phase_lst = { phases, 3 };
+    Phase phase = phases[phase_idx];
+
+    // spawn
+    SpawnAsteroids(&entities, dt, phase.spawn_ast_small, phase.spawn_ast_med);
 
     if (game.GetState() == GS_RESPAWN) {
-        // spawn
-        SpawnAsteroids(&entities, dt, phase_respawn.spawn_ast_small, phase_respawn.spawn_ast_med);
 
         if (game.phase_elapsed == 0) {
             Entity ship = ShipCreate();
@@ -65,11 +67,13 @@ void FrameUpdatePhase() {
     }
 
     else if (game.GetState() == GS_GAME) {
-        // spawn
-        SpawnAsteroids(&entities, dt, phase_play.spawn_ast_small, phase_play.spawn_ast_med);
-
         if (game.phase_elapsed % 40 == 0) {
             king->position.y += -1;
+        }
+
+        if (game.phase_elapsed % 300 == 0) {
+
+            phase_idx = (phase_idx + 1) % 3;
         }
     }
 
