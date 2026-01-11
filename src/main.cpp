@@ -117,7 +117,7 @@ void Init() {
     // kingship
     {
         Entity king = CreateEntity(ET_KING, animations);
-        f32 scale = 0.7f;
+        f32 scale = 1.0f;
         king.ani_rect.width *= scale;
         king.ani_rect.height *= scale;
         king.ani_offset.x *= scale;
@@ -127,7 +127,7 @@ void Init() {
         king.coll_offset.x *= scale;
         king.coll_offset.y *= scale;
         king.coll_radius *= scale;
-        king.position = { screen_w / 2.0f, screen_h + 8 };
+        king.position = { screen_w / 2.0f, screen_h - 32 };
         king.Update(0);
         entities.Add(king);
     }
