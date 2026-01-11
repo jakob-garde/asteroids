@@ -9,11 +9,11 @@
 #include "globals.h"
 
 
-Entity ShotCreate() {
+Entity ShotCreate(Vector2 position) {
     Entity ent = CreateEntity(ET_SHOOT, animations);
     ent.stt = ES_SHOOT_CHARGE;
 
-    ent.position = { (f32) GetMouseX(), (f32) GetMouseY() };
+    ent.position = position;
     ent.ani_offset.y = ent.ani_rect.height;
     ent.velocity.y = -0.9;
 
@@ -184,9 +184,9 @@ void ShipUpdate(Entity *ent, f32 dt) {
     ent->Update(dt);
 
     if (IsKeyPressed(KEY_SPACE)) {
-        Entity shot = ShotCreate();
-        shot.position = ent->position;
-        shot.position.y -= 32;
+        Vector2 shot_pos = ent->position;
+        shot_pos.y -= 32;
+        Entity shot = ShotCreate( shot_pos );
         PlaySoundEffect(SE_SHOOT, sounds);
 
         entities.Add(shot);

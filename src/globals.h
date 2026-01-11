@@ -9,10 +9,13 @@
 #define ARENA_CAP 1024 * 1024 * 64
 u8 arena_mem[ARENA_CAP];
 
+
 Array<Animation> animations;
 Array<Entity> entities;
 Array<Entity> entities_next;
 Array<SEffect> sounds;
+
+Music music_track;
 
 f32 screen_w;
 f32 screen_h;
@@ -28,5 +31,6 @@ Entity mask;
 
 bool pause;
 bool debug;
+bool music;
 
 #endif
