@@ -67,6 +67,10 @@ void FrameUpdatePhase() {
     else if (game.GetState() == GS_GAME) {
         // spawn
         SpawnAsteroids(&entities, dt, phase_play.spawn_ast_small, phase_play.spawn_ast_med);
+
+        if (game.phase_elapsed % 40 == 0) {
+            king->position.y += -1;
+        }
     }
 
     game.phase_elapsed++;

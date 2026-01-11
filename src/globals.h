@@ -51,6 +51,7 @@ f32 ship_vy = 0.2f;
 Entity background;
 Entity mask;
 Entity *ship;
+Entity *king;
 
 bool pause;
 bool debug;

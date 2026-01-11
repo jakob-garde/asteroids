@@ -185,6 +185,9 @@ void FrameDrawAndSwap() {
             if (added->tpe == ET_SHIP) {
                 ship = added;
             }
+            else if (added->tpe == ET_KING) {
+                king = added;
+            }
         }
     }
 
