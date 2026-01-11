@@ -119,14 +119,9 @@ void KingUpdate(Entity *ent, f32 dt) {
 }
 
 void ShipUpdate(Entity *ent, f32 dt) {
-    if (ent->stt == ES_SHIP_CRASH) {
-        ent->Update(dt);
-
-        return;
-    }
-
     f32 speed = 0.4f;
 
+    // crash
     bool crash = false;
     for (s32 i = 0; i < entities.len; ++i) {
         Entity *ast = entities.arr + i;
@@ -134,20 +129,25 @@ void ShipUpdate(Entity *ent, f32 dt) {
 
             if (CheckCollisionCircles(ast->position, ast->coll_radius, ent->position, ent->coll_radius)) {
                 crash = true;
-                PlaySoundEffect(SE_CRASH, sounds);
 
                 break;
             }
         }
     }
-
     if (IsKeyPressed(KEY_TAB) || crash) {
-        ent->stt = ES_SHIP_CRASH;
+        PlaySoundEffect(SE_CRASH, sounds);
+
+        ent->tpe = ET_SHIP_CHASH;
+        ent->life = 300;
+        ent->ani_idx0 = AnimationGetFirstByType(ET_SHIP_CHASH);
+        ent->ani_idx = 0;
+
         ent->facing_left = RandBin();
         ent->vrot = 0.05f * RandPM1();
         ent->velocity.x = RandPM1() * 0.1f;
         ent->velocity.y = RandPM1() * 0.1f;
 
+        SetPhaseRespawn();
         return;
     }
 
@@ -198,9 +198,6 @@ void ShipDraw(Entity *ent) {
     }
     else if (ent->stt == ES_SHIP_LEFT || ent->stt == ES_SHIP_RIGHT) {
         ent->ani_idx = 1;
-    }
-    else if (ent->stt == ES_SHIP_CRASH) {
-        ent->ani_idx = 2;
     }
 
     Animation ani = animations.arr[ent->ani_idx0 + ent->ani_idx];

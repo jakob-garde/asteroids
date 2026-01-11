@@ -21,6 +21,7 @@ enum EntityType {
 
     ET_SHOOT,
     ET_SHIP,
+    ET_SHIP_CHASH,
     ET_KING,
 };
 
@@ -33,7 +34,6 @@ enum EntityAnimationState {
     ES_SHIP_IDLE,
     ES_SHIP_LEFT,
     ES_SHIP_RIGHT,
-    ES_SHIP_CRASH,
 };
 
 struct Frame {
@@ -139,6 +139,15 @@ struct Entity {
         coll_rect.y = position.y + coll_offset.y;
     }
 };
+
+Entity *FindFirstEntityByType(EntityType tpe, Array<Entity> entities) {
+    for (s32 i = 0; i < entities.len; ++i) {
+        Entity *ent = entities.arr + i;
+        if (ent->tpe == tpe) {
+            return ent;
+        }
+    }
+}
 
 void EntityDrawDebug(Entity *ent) {
     if (ent->disable_debug_draw) {

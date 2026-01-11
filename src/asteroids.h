@@ -68,4 +68,5 @@ bool IsAsteroid(EntityType tpe) {
     return result;
 }
 
+
 #endif

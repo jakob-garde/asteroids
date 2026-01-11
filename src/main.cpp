@@ -59,9 +59,9 @@ Array<Animation> LoadAssets(MArena *a_dest) {
     animations.Add( InitAnimation(a_dest, "resources/expl_01.png", ET_EXPLOSION_SMALL, 0, 1) );
     animations.Add( InitAnimation(a_dest, "resources/expl_02.png", ET_EXPLOSION_MED, 0, 1) );
 
-    animations.Add( InitAnimation(a_dest, "resources/ship_idle.png", ET_SHIP, 0, 3) );
-    animations.Add( InitAnimation(a_dest, "resources/ship_side.png", ET_SHIP, 1, 3) );
-    animations.Add( InitAnimation(a_dest, "resources/ship_crash.png", ET_SHIP, 2, 3) );
+    animations.Add( InitAnimation(a_dest, "resources/ship_idle.png", ET_SHIP, 0, 2) );
+    animations.Add( InitAnimation(a_dest, "resources/ship_side.png", ET_SHIP, 1, 2) );
+    animations.Add( InitAnimation(a_dest, "resources/ship_crash.png", ET_SHIP_CHASH, 0, 1) );
     animations.Add( InitAnimation(a_dest, "resources/kingship.png", ET_KING, 0, 1) );
 
     return animations;
@@ -127,9 +127,6 @@ void Init() {
         mask_top = screen_h * 0.15f;
     }
 
-    // ship
-    entities.Add(ShipCreate());
-
     // kingship
     {
         Entity king = CreateEntity(ET_KING, animations);
@@ -149,6 +146,7 @@ void Init() {
     }
 
     // start
+    SetPhaseRespawn();
     SpawnStartupAsteroids(&entities, 0);
 }
 
@@ -167,10 +165,7 @@ void FrameDrawAndSwap() {
 
     for (s32 i = 0; i < entities.len; ++i) {
         Entity *ent = entities.arr + i;
-        if (IsAsteroid(ent->tpe)) {
-            EntityDraw(animations, ent);
-        }
-        else if (ent->tpe == ET_SHOOT) {
+        if (ent->tpe == ET_SHOOT) {
             ShotDraw(ent);
         }
         else if (ent->tpe == ET_SHIP) {
@@ -197,7 +192,12 @@ void FrameDrawAndSwap() {
         Entity *ent = entities.arr + i;
 
         if (ent->deleted == false) {
-            entities_next.Add(*ent);
+            Entity *added = entities_next.Add(*ent);
+
+            // update the location of unique entities
+            if (added->tpe == ET_SHIP) {
+                ship = added;
+            }
         }
     }
 
@@ -263,7 +263,9 @@ void FrameUpdate() {
 
         if (ent->life > 0) {
             ent->life--;
-            ent->deleted = ent->life == 0;
+            if (ent->life == 0) {
+                ent->deleted = true;
+            }
         }
 
         if (IsAsteroid(ent->tpe)) {
@@ -287,10 +289,10 @@ void FrameUpdate() {
                 }
             }
         }
-        else if (ent->tpe == ET_SHOOT) {
+        else if (phase.play && ent->tpe == ET_SHOOT) {
             ShotUpdate(ent, dt);
         }
-        else if (ent->tpe == ET_SHIP) {
+        else if (phase.play && ent->tpe == ET_SHIP) {
             ShipUpdate(ent, dt);
         }
         else if (ent->tpe == ET_KING) {
@@ -304,8 +306,8 @@ void FrameUpdate() {
 }
 
 void Run() {
-    Init();
     InitPhases();
+    Init();
 
     while (!WindowShouldClose()) {
         FrameUpdate();

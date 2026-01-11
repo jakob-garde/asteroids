@@ -69,10 +69,11 @@ struct Array {
     u32 cap = 0;
 
     inline
-    void Add(T element) {
+    T *Add(T element) {
         assert(len < cap);
 
         arr[len++] = element;
+        return arr + len - 1;
     }
     void AddSafe(T element) {
         if (len < cap) {
