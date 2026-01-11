@@ -47,6 +47,10 @@ f32 mask_top;
 f32 mask_bottom;
 
 f32 ship_vy = 0.1f;
+s32 king_advance_small = 1;
+s32 king_advance_tick = - 1;
+s32 king_advance_med = 10;
+s32 king_advance_shoot = - 2;
 
 Entity background;
 Entity mask;

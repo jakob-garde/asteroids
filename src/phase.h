@@ -100,7 +100,7 @@ void FrameUpdatePhase() {
 
     else if (game.GetState() == GS_GAME) {
         if (game.phase_elapsed % 40 == 0) {
-            king->position.y += -1;
+            king->position.y += king_advance_tick;
         }
 
         // switch to next phase

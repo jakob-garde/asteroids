@@ -117,24 +117,7 @@ void Init() {
     }
 
     // kingship
-    {
-        Entity king = CreateEntity(ET_KING, animations);
-        king.stt = ES_KING_PHASE_3;
-        f32 scale = 1.0f;
-        king.ani_rect.width *= scale;
-        king.ani_rect.height *= scale;
-        king.ani_offset.x *= scale;
-        king.ani_offset.y *= scale;
-        king.coll_rect.width *= scale;
-        king.coll_rect.height *= scale;
-        king.coll_offset.x *= scale;
-        king.coll_offset.y *= scale;
-        king.coll_radius *= scale;
-        //king.position = { screen_w / 2.0f, screen_h - 32 };
-        king.position = { screen_w / 2.0f, screen_h/2 - 32 };
-        king.Update(0);
-        entities.Add(king);
-    }
+    Entity king = KingCreate();
 
     // start
     game.SetState(GS_RESPAWN);

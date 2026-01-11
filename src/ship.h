@@ -52,7 +52,7 @@ void ShotUpdate(Entity *ent, f32 dt) {
                     }
 
                     PlaySoundEffect(SE_EXPLOSION, sounds);
-                    king->position.y += -2;
+                    king->position.y += king_advance_shoot;
                 }
 
                 ent->deleted = true;
@@ -132,6 +132,17 @@ void KingDraw(Entity *ent) {
     DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
 }
 
+Entity KingCreate() {
+    Entity king = CreateEntity(ET_KING, animations);
+
+    king.stt = ES_KING_PHASE_1;
+    king.position = { screen_w / 2.0f, screen_h - 32 };
+    king.Update(0);
+    entities.Add(king);
+
+    return king;
+}
+
 void KingUpdate(Entity *ent, f32 dt) {
     ent->Update(dt);
     ent->frame_elapsed += dt;
@@ -149,7 +160,7 @@ void KingUpdate(Entity *ent, f32 dt) {
                 exp.Update(0);
                 entities.Add(exp);
 
-                ent->position.y += 1;
+                ent->position.y += king_advance_small;
             }
         }
         else if (ast->tpe == ET_AST_MED) {
@@ -162,7 +173,7 @@ void KingUpdate(Entity *ent, f32 dt) {
                 exp.Update(0);
                 entities.Add(exp);
 
-                ent->position.y += 10;
+                ent->position.y += king_advance_med;
             }
         }
     }
