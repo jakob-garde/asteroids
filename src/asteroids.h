@@ -10,23 +10,15 @@
 Entity CreateAsteroid(EntityType tpe, f32 sigma) {
     Entity ast = CreateEntity(tpe, animations);
 
-    //f32 x = GetRandomValue(0, GetScreenWidth());
-    //f32 y = GetRandomValue(0, GetScreenHeight() / 3);
-    //ast.position = { x, y };
-    //f32 vx = GetRandomValue(-sigma, sigma) / 1400.0f;
-    //f32 vy = GetRandomValue(-sigma, sigma) / 1400.0f;
-    //ast.velocity = { vx, vy };
-    //ast.disable_vy = true;
-
-    f32 x = GetRandomValue(0, GetScreenWidth() - 1);
+    f32 x = Rand(GetScreenWidth() - 1);
     f32 y = -32;
     ast.position = { x, y };
-    f32 vx = GetRandomValue(-sigma, sigma) / 700.0f;
-    f32 vy = GetRandomValue(-sigma, sigma) / 700.0f;
+    f32 vx = sigma * RandPM1();
+    f32 vy = sigma * Rand01() / 2.0f;
     ast.velocity = { vx, vy };
 
-    ast.rot = GetRandomValue(-100, 100);
-    ast.vrot = GetRandomValue(-100, 100) / 300.0f;
+    ast.rot = 0; // GetRandomValue(-100, 100);
+    ast.vrot = GetRandomValue(-1, 1) / 3.0f;
 
     return ast;
 }
@@ -37,23 +29,13 @@ bool DoSpawn(f32 dt, f32 vy, f32 rate) {
     return result;
 }
 
-void SpawnAsteroids(Array<Entity> *entities, f32 dt, f32 rate_small, f32 rate_med) {
+void SpawnAsteroids(Array<Entity> *entities, f32 dt, f32 rate_small, f32 rate_med, f32 sigma) {
     if (DoSpawn(dt, ship_vy, rate_small)) {
-        entities->AddSafe( CreateAsteroid(ET_AST_SMALL, 100.0f) );
+        entities->AddSafe( CreateAsteroid(ET_AST_SMALL, sigma) );
     }
     if (DoSpawn(dt, ship_vy, rate_med)) {
-        entities->AddSafe( CreateAsteroid(ET_AST_MED, 100.0f) );
+        entities->AddSafe( CreateAsteroid(ET_AST_MED, sigma) );
     }
-}
-
-void SpawnStartupAsteroids(Array<Entity> *entities, f32 vy) {
-    f32 rate_small = 16;
-    f32 rate_med = 2;
-
-    for (s32 i = 0; i < rate_small; ++i) 
-        entities->AddSafe( CreateAsteroid(ET_AST_SMALL, true) );
-    for (s32 i = 0; i < rate_med; ++i)
-        entities->AddSafe( CreateAsteroid(ET_AST_MED, true) );
 }
 
 bool IsAsteroid(EntityType tpe) {

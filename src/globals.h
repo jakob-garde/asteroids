@@ -46,7 +46,7 @@ f32 mask_right;
 f32 mask_top;
 f32 mask_bottom;
 
-f32 ship_vy = 0.2f;
+f32 ship_vy = 0.1f;
 
 Entity background;
 Entity mask;

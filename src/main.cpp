@@ -134,7 +134,6 @@ void Init() {
 
     // start
     game.SetState(GS_RESPAWN);
-    SpawnStartupAsteroids(&entities, 0);
 }
 
 void Close() {

@@ -13,21 +13,40 @@
 struct Phase {
     f32 spawn_ast_small;
     f32 spawn_ast_med;
-
-    bool respawn;
-    bool play;
+    s32 duration;
+    f32 spawn_sigma;
 };
 
-Phase phases[3];
-s32 phase_idx = 2;
+Phase phases_mem[32];
+Array<Phase> phase_lst;
+s32 phase_idx = 0;
+
+
+
+Phase InitPhase(f32 spawn_ast_small, f32 spawn_ast_med, s32 duration, f32 spawn_sigma) {
+    Phase p = {};
+    p.spawn_ast_small = spawn_ast_small;
+    p.spawn_ast_med = spawn_ast_med;
+    p.duration = duration;
+    p.spawn_sigma = spawn_sigma;
+    return p;
+}
+Phase InitPhasePause(s32 duration) {
+    Phase p = InitPhase(0, 0, duration, 0);
+    return p;
+}
+
 
 void InitPhases() {
-    phases[0].spawn_ast_small = 4;
-    phases[0].spawn_ast_med = 0;
-    phases[1].spawn_ast_small = 0;
-    phases[1].spawn_ast_med = 4;
-    phases[2].spawn_ast_small = 0;
-    phases[2].spawn_ast_med = 16;
+    phase_lst = { phases_mem, 0 };
+    phase_lst.cap = 32;
+
+    phase_lst.Add( InitPhase(10, 0, 300, 2.0f) );
+    //phase_lst.Add( InitPhasePause(120) );
+    //phase_lst.Add( InitPhase(40, 0, 120, 1.0f) );
+    //phase_lst.Add( InitPhasePause(120) );
+    phase_lst.Add( InitPhase(10, 10, 300, 0.5f) );
+    phase_lst.Add( InitPhasePause(120) );
 }
 
 bool IsShipControlled() {
@@ -41,15 +60,12 @@ bool IsShipControlled() {
 
 void FrameUpdatePhase() {
     f32 dt = GetFrameTime() * 1000;
-
-    //Array<Phase> phase_lst = { phases, 3 };
-    Phase phase = phases[phase_idx];
+    Phase phase = phase_lst.arr[phase_idx];
 
     // spawn
-    SpawnAsteroids(&entities, dt, phase.spawn_ast_small, phase.spawn_ast_med);
+    SpawnAsteroids(&entities, dt, phase.spawn_ast_small, phase.spawn_ast_med, 0.1f);
 
     if (game.GetState() == GS_RESPAWN) {
-
         if (game.phase_elapsed == 0) {
             Entity ship = ShipCreate();
             ship.position = { screen_w / 2, screen_h + ship.ani_rect.height / 2 };
@@ -71,12 +87,13 @@ void FrameUpdatePhase() {
             king->position.y += -1;
         }
 
-        if (game.phase_elapsed % 300 == 0) {
-
-            phase_idx = (phase_idx + 1) % 3;
+        // switch to next phase
+        if (game.phase_elapsed > phase.duration) {
+            game.phase_elapsed = 0;
+            phase_idx = (phase_idx + 1) % phase_lst.len;
         }
-    }
 
+    }
     game.phase_elapsed++;
 }
 
