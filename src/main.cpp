@@ -276,7 +276,7 @@ void FrameUpdate() {
                 }
             }
         }
-        else if (game.GetState() == GS_GAME && ent->tpe == ET_SHOOT) {
+        else if (ent->tpe == ET_SHOOT) {
             ShotUpdate(ent, dt);
         }
         else if (game.GetState() == GS_GAME && ent->tpe == ET_SHIP) {
