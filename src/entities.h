@@ -35,6 +35,10 @@ enum EntityAnimationState {
     ES_SHIP_IDLE,
     ES_SHIP_LEFT,
     ES_SHIP_RIGHT,
+
+    ES_KING_PHASE_1,
+    ES_KING_PHASE_2,
+    ES_KING_PHASE_3
 };
 
 struct Frame {

@@ -101,8 +101,40 @@ Entity ShipCreate() {
     return ent;
 }
 
+void KingDraw(Entity *ent) {
+    Animation ani = animations.arr[ent->ani_idx0 + ent->ani_idx];
+    Frame frame = ani.frames.arr[ent->frame_idx];
+
+    if (frame.duration == 0) {
+    }
+
+    else if (ent->frame_elapsed > frame.duration) {
+        if (ent->stt == ES_KING_PHASE_1) {
+            ent->frame_elapsed = 0;
+            ent->frame_idx = (ent->frame_idx - 1 + 1) % 2 + 1;
+            frame = ani.frames.arr[ent->frame_idx];
+        }
+        else if (ent->stt == ES_KING_PHASE_2) {
+            ent->frame_elapsed = 0;
+            ent->frame_idx = (ent->frame_idx - 3 + 1) % 2 + 3;
+            frame = ani.frames.arr[ent->frame_idx];
+        }
+        else if (ent->stt == ES_KING_PHASE_3) {
+            ent->frame_elapsed = 0;
+            ent->frame_idx = (ent->frame_idx - 5 + 1) % 2 + 5;
+            frame = ani.frames.arr[ent->frame_idx];
+        }
+        else {
+            assert(1 == 0 && "set king animation state");
+        }
+    }
+
+    DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
+}
+
 void KingUpdate(Entity *ent, f32 dt) {
     ent->Update(dt);
+    ent->frame_elapsed += dt;
 
     for (s32 i = 0; i < entities.len; ++i) {
         Entity *ast = entities.arr + i;

@@ -50,7 +50,8 @@ Array<Animation> LoadAssets(MArena *a_dest) {
     animations.Add( InitAnimation(a_dest, "resources/ship_idle.png", ET_SHIP, 0, 2) );
     animations.Add( InitAnimation(a_dest, "resources/ship_side.png", ET_SHIP, 1, 2) );
     animations.Add( InitAnimation(a_dest, "resources/ship_crash.png", ET_SHIP_CHASH, 0, 1) );
-    animations.Add( InitAnimation(a_dest, "resources/kingship.png", ET_KING, 0, 1) );
+
+    animations.Add( InitAnimation(a_dest, "resources/kingship_256-sheet.png", ET_KING, 0, 1) );
 
     return animations;
 }
@@ -118,6 +119,7 @@ void Init() {
     // kingship
     {
         Entity king = CreateEntity(ET_KING, animations);
+        king.stt = ES_KING_PHASE_3;
         f32 scale = 1.0f;
         king.ani_rect.width *= scale;
         king.ani_rect.height *= scale;
@@ -128,7 +130,8 @@ void Init() {
         king.coll_offset.x *= scale;
         king.coll_offset.y *= scale;
         king.coll_radius *= scale;
-        king.position = { screen_w / 2.0f, screen_h - 32 };
+        //king.position = { screen_w / 2.0f, screen_h - 32 };
+        king.position = { screen_w / 2.0f, screen_h/2 - 32 };
         king.Update(0);
         entities.Add(king);
     }
@@ -159,7 +162,7 @@ void FrameDrawAndSwap() {
             ShipDraw(ent);
         }
         else if (ent->tpe == ET_KING) {
-            EntityDraw(animations, ent);
+            KingDraw(ent);
         }
         else {
             EntityDraw(animations, ent);
