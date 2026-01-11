@@ -41,10 +41,7 @@ bool DoSpawn(f32 dt, f32 vy, f32 rate) {
     return result;
 }
 
-void SpawnAsteroids(Array<Entity> *entities, f32 dt) {
-    f32 rate_small = 16; // asteroids per second
-    f32 rate_med = 2;
-
+void SpawnAsteroids(Array<Entity> *entities, f32 rate_small, f32 rate_med, f32 dt) {
     if (DoSpawn(dt, ship_vy, rate_small)) {
         entities->AddSafe( CreateAsteroid(ET_AST_SMALL) );
     }

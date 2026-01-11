@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "asteroids.h"
 #include "ship.h"
+#include "phase.h"
 
 
 /*
@@ -209,19 +210,10 @@ void FrameDrawAndSwap() {
 
 void FrameUpdate() {
     if (debug && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        // DBG shoot using the mouse
         entities.Add( ShotCreate({ (f32) GetMouseX(), (f32) GetMouseY() }) );
     }
-    if (IsKeyPressed(KEY_M)) {
-        music = !music;
-
-        if (music) {
-            PlayMusicStream(music_track);
-        }
-        else {
-            StopMusicStream(music_track);
-        }
-    }
-    if (IsKeyPressed(KEY_R)) {
+    if (debug && IsKeyPressed(KEY_R)) {
         // DBG reset
         for (s32 i = 0; i < entities.len; ++i) {
             Entity *ent = entities.arr + i;
@@ -233,7 +225,17 @@ void FrameUpdate() {
                 break;
             }
         }
+    }
 
+    if (IsKeyPressed(KEY_M)) {
+        music = !music;
+
+        if (music) {
+            PlayMusicStream(music_track);
+        }
+        else {
+            StopMusicStream(music_track);
+        }
     }
     if (IsKeyPressed(KEY_D)) {
         debug = !debug;
@@ -241,10 +243,10 @@ void FrameUpdate() {
     if (IsKeyPressed(KEY_P)) {
         pause = !pause;
     }
+
     if (pause) {
         return;
     }
-
     if (music) {
         UpdateMusicStream(music_track);
     }
@@ -253,13 +255,9 @@ void FrameUpdate() {
     // NOTE: ship_delta_vy is the ship speed relative to the "ambient" asteroids
     f32 ship_delta_vy = 0;
     ship_vy += ship_delta_vy;
-
-    // update
     f32 dt = GetFrameTime() * 1000;
 
-    // spawn
-    SpawnAsteroids(&entities, dt);
-
+    // update
     for (s32 i = 0; i < entities.len; ++i) {
         Entity *ent = entities.arr + i;
 
@@ -307,9 +305,12 @@ void FrameUpdate() {
 
 void Run() {
     Init();
+    InitPhases();
 
     while (!WindowShouldClose()) {
         FrameUpdate();
+        FrameUpdatePhase();
+
         FrameDrawAndSwap();
     }
 

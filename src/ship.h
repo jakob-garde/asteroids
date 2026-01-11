@@ -1,11 +1,10 @@
 #ifndef __SHIP_H__
 #define __SHIP_H__
 
-#include "raylib.h"
 
+#include "raylib.h"
 #include "memory.h"
 #include "entities.h"
-
 #include "globals.h"
 
 
