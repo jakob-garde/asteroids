@@ -52,6 +52,7 @@ void ShotUpdate(Entity *ent, f32 dt) {
                     }
 
                     PlaySoundEffect(SE_EXPLOSION, sounds);
+                    king->position.y += -2;
                 }
 
                 ent->deleted = true;
@@ -117,6 +118,19 @@ void KingUpdate(Entity *ent, f32 dt) {
                 entities.Add(exp);
 
                 ent->position.y += 1;
+            }
+        }
+        else if (ast->tpe == ET_AST_MED) {
+            if (CheckCollisionCircles(ast->position, ast->coll_radius, ent->position, ent->coll_radius)) {
+                ast->deleted = true;
+                Entity exp = CreateEntity(ET_EXPLOSION_LARGE, animations);
+                exp.position = ast->position;
+                exp.velocity = { ast->velocity.x * 0.05f, (ast->velocity.y + ship_vy) * 0.05f };
+                exp.life = 120;
+                exp.Update(0);
+                entities.Add(exp);
+
+                ent->position.y += 10;
             }
         }
     }

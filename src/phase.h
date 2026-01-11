@@ -41,11 +41,11 @@ void InitPhases() {
     phase_lst = { phases_mem, 0 };
     phase_lst.cap = 32;
 
-    phase_lst.Add( InitPhase(10, 0, 300, 2.0f) );
+    phase_lst.Add( InitPhase(10, 2, 300, 2.0f) );
     //phase_lst.Add( InitPhasePause(120) );
     //phase_lst.Add( InitPhase(40, 0, 120, 1.0f) );
     //phase_lst.Add( InitPhasePause(120) );
-    phase_lst.Add( InitPhase(10, 10, 300, 0.5f) );
+    phase_lst.Add( InitPhase(10, 30, 120, 0.5f) );
     phase_lst.Add( InitPhasePause(120) );
 }
 
@@ -72,7 +72,7 @@ void FrameUpdatePhase() {
             ship.velocity = { 0, -0.1f };
             entities.Add(ship);
         }
-        else if (game.phase_elapsed >= 60 || (game.phase_elapsed >= 40 && IsShipControlled())) {
+        else if ((ship->position.y < king->position.y - king->ani_rect.height / 2) || (game.phase_elapsed >= 40 && IsShipControlled())) {
             game.SetState(GS_GAME);
 
             ship->velocity = {};

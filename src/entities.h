@@ -18,6 +18,7 @@ enum EntityType {
 
     ET_EXPLOSION_SMALL,
     ET_EXPLOSION_MED,
+    ET_EXPLOSION_LARGE,
 
     ET_SHOOT,
     ET_SHIP,
