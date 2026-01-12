@@ -14,7 +14,6 @@ enum GameState {
     GS_TITLE,
     GS_GAME,
     GS_TRANSITION,
-    GS_ADVANCE,
     GS_END,
 };
 
@@ -67,6 +66,7 @@ f32 background_mask_bottom;
 
 f32 ship_movement_speed = 0.4f;
 f32 ship_global_vy = 0.1f;
+bool ship_do_respawn;
 
 s32 king_advance_small = 1;
 s32 king_advance_med = 10;

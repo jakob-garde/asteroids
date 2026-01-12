@@ -39,7 +39,7 @@ Entity KingCreate() {
 
     king.state = ES_KING_PHASE_0;
     king.duration = 60000; // duration before king should automatically start to advance
-    king.position = { screen_w / 2.0f, screen_h };
+    king.position = { screen_w / 2.0f, KingStartingHeight() };
     king.Update(0);
 
     return king;
@@ -66,22 +66,27 @@ void KingDraw(Entity *ent) {
     }
 
     else if (ent->frame_elapsed > frame.duration) {
-        if (ent->state == ES_KING_PHASE_0) {
+        EntityState ks = ent->state;
+        if (ks == ES_KING_ADVANCE) {
+            ks = ent->state_next;
+        }
+
+        if (ks == ES_KING_PHASE_0) {
             ent->frame_elapsed = 0;
             ent->frame_idx = 0;
             frame = ani.frames.arr[ent->frame_idx];
         }
-        else if (ent->state == ES_KING_PHASE_1) {
+        else if (ks == ES_KING_PHASE_1) {
             ent->frame_elapsed = 0;
             ent->frame_idx = (ent->frame_idx - 1 + 1) % 2 + 1;
             frame = ani.frames.arr[ent->frame_idx];
         }
-        else if (ent->state == ES_KING_PHASE_2) {
+        else if (ks == ES_KING_PHASE_2) {
             ent->frame_elapsed = 0;
             ent->frame_idx = (ent->frame_idx - 3 + 1) % 2 + 3;
             frame = ani.frames.arr[ent->frame_idx];
         }
-        else if (ent->state == ES_KING_PHASE_3) {
+        else if (ks == ES_KING_PHASE_3) {
             ent->frame_elapsed = 0;
             ent->frame_idx = (ent->frame_idx - 5 + 1) % 2 + 5;
             frame = ani.frames.arr[ent->frame_idx];
@@ -166,7 +171,9 @@ void ShipUpdate(Entity *ent, f32 dt) {
         ent->velocity.x = RandPM1() * 0.1f;
         ent->velocity.y = RandPM1() * 0.1f;
 
-        game.SetState(GS_TRANSITION);
+        // trigger ship respawn
+        ship_do_respawn = true;
+
         return;
     }
 
@@ -215,15 +222,21 @@ void ShipUpdate(Entity *ent, f32 dt) {
 }
 
 void KingUpdate(Entity *ent, f32 dt) {
-    // TODO: frame_elapsed and elapsed should be moved to .Update()
-
-    ent->frame_elapsed += dt;
-    ent->elapsed += dt;
-    ent->Update(dt);
-
     bool king_do_advance = (ent->state != ES_KING_PHASE_0) && (ent->state != ES_KING_ADVANCE);
 
-    if (ent->elapsed >= king_advance_interval_ms && king_do_advance) {
+    if (king->state == ES_KING_ADVANCE) {
+        if (king->elapsed == 0) {
+            king->velocity.y = 0.1;
+        }
+        else if (king->position.y >= KingStartingHeight()) {
+            king->elapsed = 0;
+            king->state = king->state_next;
+            king->position.y = KingStartingHeight();
+            king->velocity = {};
+        }
+    }
+
+    else if (ent->elapsed >= king_advance_interval_ms && king_do_advance) {
         ent->elapsed = 0;
         if (ship && CheckCollisionPointCircle(ship->position, ent->position, ent->coll_radius)) {
             // TODO: the king must speak! MOVE, LITTLE ONE!
@@ -267,6 +280,10 @@ void KingUpdate(Entity *ent, f32 dt) {
             }
         }
     }
+
+    ent->frame_elapsed += dt;
+    ent->elapsed += dt;
+    ent->Update(dt);
 }
 
 void ShotUpdate(Entity *ent, f32 dt) {

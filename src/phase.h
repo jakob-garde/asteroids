@@ -9,6 +9,7 @@
 #include "asteroids.h"
 #include "ship.h"
 
+
 struct SpawnPhase {
     f32 spawn_ast_small;
     f32 spawn_ast_med;
@@ -110,9 +111,16 @@ void FrameUpdateLevel01() {
 
     f32 dt = GetFrameTimeMS();
 
+    // trigger ship respawn
+    if (ship == NULL) {
+        ship_do_respawn = true;
+    }
+
     // update
-    if ((ship == NULL) || (ship->state == ES_SHIP_RESPAWN) || (game.GetState() == GS_TRANSITION)) {
-        if (game.phase_elapsed == 0) {
+    if ((ship != NULL) || ship_do_respawn) {
+        if (ship_do_respawn) {
+            ship_do_respawn = false;
+
             Entity s = ShipCreate();
             s.state = ES_SHIP_RESPAWN;
             s.position = { screen_w / 2, screen_h + s.ani_rect.height / 2 };
@@ -120,10 +128,10 @@ void FrameUpdateLevel01() {
             ship = entities.Add(s);
             game.SetState(GS_GAME);
         }
-        else if (((ship->position.y < king->position.y - king->ani_rect.height / 2) == false)) {
+        else if (((ship->position.y < king->position.y - king->ani_rect.height / 2 - 4) == false)) {
             // wait
         }
-        else if (((ship->position.y < king->position.y - king->ani_rect.height / 2) == true)) {
+        else if (((ship->position.y < king->position.y - king->ani_rect.height / 2 - 4) == true)) {
             ship->state = ES_SHIP_IDLE;
             ship->velocity = {};
         }
@@ -153,29 +161,23 @@ void FrameUpdateLevel01() {
 
     // kingship advance
     else if ((king->state == ES_KING_PHASE_1) && (KingHeightAtTop() <= KingHeightForAdvance())) {
-            // TODO:
-            //king->state = ES_KING_ADVANCE;
-            // DBG:
-            king->position.y = KingStartingHeight();
-            king->state = ES_KING_PHASE_2;
+        king->state = ES_KING_ADVANCE;
+        king->state_next = ES_KING_PHASE_2;
+        king->elapsed = 0;
 
-            king->state_next = ES_KING_PHASE_2;
-            ship_global_vy += 0.05f;
-            king_advance_interval_ms = 230;
-
-            InitSpawnCycle(2);
-            SetMusicTrack(&music_track_action);
-        }
-    else if ((king->state == ES_KING_PHASE_2) && (KingHeightAtTop() <= KingHeightForAdvance())) {
-        // TODO:
-        //king->state = ES_KING_ADVANCE;
-        // DBG:
-        king->position.y = KingStartingHeight();
-        king->state = ES_KING_PHASE_3;
-
-        king->state_next = ES_KING_PHASE_3;
-        king_advance_interval_ms = 150;
         ship_global_vy += 0.05f;
+        king_advance_interval_ms = 230;
+
+        InitSpawnCycle(2);
+        SetMusicTrack(&music_track_action);
+    }
+    else if ((king->state == ES_KING_PHASE_2) && (KingHeightAtTop() <= KingHeightForAdvance())) {
+        king->state = ES_KING_ADVANCE;
+        king->state_next = ES_KING_PHASE_3;
+        king->elapsed = 0;
+
+        ship_global_vy += 0.05f;
+        king_advance_interval_ms = 150;
 
         InitSpawnCycle(3);
     }
