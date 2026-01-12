@@ -11,13 +11,11 @@ Entity CreateAsteroid(EntityType tpe, f32 sigma) {
     Entity ast = CreateEntity(tpe, animations);
 
     f32 x = Rand(GetScreenWidth() - 1);
-    f32 y = -32;
+    f32 y = - 32;
     ast.position = { x, y };
     f32 vx = sigma * RandPM1();
     f32 vy = sigma * Rand01() / 2.0f;
     ast.velocity = { vx, vy };
-
-    ast.rot = 0; // GetRandomValue(-100, 100);
     ast.vrot = GetRandomValue(-1, 1) / 3.0f;
 
     return ast;

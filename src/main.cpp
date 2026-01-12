@@ -77,16 +77,14 @@ void Init() {
 
     // music loop
     music_track = LoadMusicStream("resources/Waves.mp3");
-    //music_track = LoadMusicStream("resources/Dreams.mp3");
-    
-    // god afslutning:
-    //music_track = LoadMusicStream("resources/Nostalgia.mp3");
-    // god start:
     if (music) {
         PlayMusicStream(music_track);
     }
     float volume = 0.5f;
     SetMusicVolume(music_track, volume);
+
+    f32 master_volume = 0.3f;
+    SetMasterVolume(master_volume);
 
     // background
     f32 bcgrnd_aspect = 0;
@@ -124,7 +122,7 @@ void Init() {
     // kingship
     Entity k = KingCreate();
     king = FindFirstEntityByType(ET_KING, entities);
-    InitPhases(k.stt);
+    InitSpawnCycle(k.state);
 
     // start
     game.SetState(GS_RESPAWN);
@@ -201,7 +199,7 @@ void FrameUpdate() {
         for (s32 i = 0; i < entities.len; ++i) {
             Entity *ent = entities.arr + i;
             if (ent->tpe == ET_SHIP) {
-                ent->stt = ES_SHIP_IDLE;
+                ent->state = ES_SHIP_IDLE;
                 ent->vrot = 0;
                 ent->rot = 0;
                 ent->velocity = {};
@@ -238,7 +236,7 @@ void FrameUpdate() {
     // NOTE: ship_delta_vy is the ship speed relative to the "ambient" asteroids
     f32 ship_delta_vy = 0;
     ship_vy += ship_delta_vy;
-    f32 dt = GetFrameTime() * 1000;
+    f32 dt = GetFrameTimeMS();
 
     // update
     for (s32 i = 0; i < entities.len; ++i) {

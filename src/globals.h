@@ -72,7 +72,26 @@ s32 AnimationGetFirstByType(EntityType tpe) {
     return {};
 }
 
-// phases
+Array<s32> AnimationGetAllByType(MArena *a_tmp, EntityType tpe) {
+    Array<s32> result = {};
+    result.InitForExpand(a_tmp);
+
+    for (s32 i = 0; i < animations.len; ++i) {
+        Animation ani = animations.arr[i];
+        if (ani.tpe == tpe) {
+            result.Expand(a_tmp, i);
+        }
+    }
+    return result;
+}
+
+// helpers
+
+inline
+f32 GetFrameTimeMS() {
+    f32 result = GetFrameTime() * 1000;
+    return result;
+}
 
 
 #endif

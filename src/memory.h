@@ -62,6 +62,11 @@ void ArenaClear(MArena *a) {
 }
 
 
+// forward declarations for Array method use
+template<typename T> struct Array;
+template<class T> Array<T> InitArray(MArena *a, u32 max_len);
+
+
 template<typename T>
 struct Array {
     T *arr = NULL;
@@ -75,10 +80,33 @@ struct Array {
         arr[len++] = element;
         return arr + len - 1;
     }
-    void AddSafe(T element) {
+    T *AddSafe(T element) {
         if (len < cap) {
-            arr[len++] = element;
+            return Add(element);
         }
+        else {
+            return NULL;
+        }
+    }
+
+    inline
+    T *Expand(MArena *a_dest, T element) {
+        void *loc = ArenaAlloc(a_dest, sizeof(T));
+        assert(arr + len == loc && "must be consecutive");
+        cap++;
+
+        return Add(element);
+    }
+
+    void InitForExpand(MArena *a_dest) {
+        Array<T> result = InitArray<s32>(a_dest, 0);
+        arr = result.arr;
+    }
+
+    void InitForCapacity(MArena *a_dest, u32 capacity) {
+        Array<T> result = InitArray<s32>(a_dest, capacity);
+        arr = result.arr;
+        arr.cap = capacity;
     }
 };
 

@@ -26,21 +26,6 @@ enum EntityType {
     ET_KING,
 };
 
-enum EntityAnimationState {
-    ES_UNDEF,
-
-    ES_SHOOT_CHARGE,
-    ES_SHOOT_RELEASE,
-
-    ES_SHIP_IDLE,
-    ES_SHIP_LEFT,
-    ES_SHIP_RIGHT,
-
-    ES_KING_PHASE_1,
-    ES_KING_PHASE_2,
-    ES_KING_PHASE_3
-};
-
 struct Frame {
     Rectangle source;
     s32 duration;
@@ -104,11 +89,31 @@ Animation InitAnimation(MArena *a_dest, const char* anifile, EntityType tpe, s32
     return ani;
 }
 
+void UnloadTextures(Array<Animation> animations) {
+    for (s32 i = 0; i < animations.len; ++i) {
+        UnloadTexture(animations.arr[i].texture);
+    }
+}
+
+enum EntityState {
+    ES_UNDEF,
+
+    ES_SHOOT_CHARGE,
+    ES_SHOOT_RELEASE,
+
+    ES_SHIP_IDLE,
+    ES_SHIP_LEFT,
+    ES_SHIP_RIGHT,
+
+    ES_KING_PHASE_1,
+    ES_KING_PHASE_2,
+    ES_KING_PHASE_3,
+};
+
 struct Entity {
     EntityType tpe;
-    EntityAnimationState stt;
-    s32 facing_left;
-    s32 state;
+    EntityState state;
+    bool facing_left;
     bool deleted;
     bool disable_debug_draw;
     bool disable_vy;
@@ -144,16 +149,6 @@ struct Entity {
         coll_rect.y = position.y + coll_offset.y;
     }
 };
-
-Entity *FindFirstEntityByType(EntityType tpe, Array<Entity> entities) {
-    for (s32 i = 0; i < entities.len; ++i) {
-        Entity *ent = entities.arr + i;
-        if (ent->tpe == tpe) {
-            return ent;
-        }
-    }
-    return NULL;
-}
 
 void EntityDrawDebug(Entity *ent) {
     if (ent->disable_debug_draw) {
@@ -191,10 +186,14 @@ void EntityDraw(Array<Animation> animations, Entity *ent) {
     DrawTexturePro(frame.tex, frame.source, ent->ani_rect, ent->ani_offset, ent->rot, WHITE);
 }
 
-void UnloadTextures(Array<Animation> animations) {
-    for (s32 i = 0; i < animations.len; ++i) {
-        UnloadTexture(animations.arr[i].texture);
+Entity *FindFirstEntityByType(EntityType tpe, Array<Entity> entities) {
+    for (s32 i = 0; i < entities.len; ++i) {
+        Entity *ent = entities.arr + i;
+        if (ent->tpe == tpe) {
+            return ent;
+        }
     }
+    return NULL;
 }
 
 Entity CreateEntity(EntityType tpe, Array<Animation> animations, bool select_random = true) {

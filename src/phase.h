@@ -10,87 +10,81 @@
 #include "ship.h"
 
 
-struct Phase {
+struct SpawnPhase {
     f32 spawn_ast_small;
     f32 spawn_ast_med;
     s32 duration;
     f32 spawn_sigma;
 };
 
-Phase phases_mem[32];
-Array<Phase> phase_lst;
+SpawnPhase phases_mem[32];
+Array<SpawnPhase> phase_lst;
 s32 phase_idx = 0;
 
-
-Phase InitPhase(f32 spawn_ast_small, f32 spawn_ast_med, s32 duration, f32 spawn_sigma) {
-    Phase p = {};
+SpawnPhase SpawnPhaseInit(f32 spawn_ast_small, f32 spawn_ast_med, s32 duration, f32 spawn_sigma) {
+    SpawnPhase p = {};
     p.spawn_ast_small = spawn_ast_small;
     p.spawn_ast_med = spawn_ast_med;
     p.duration = duration;
     p.spawn_sigma = spawn_sigma;
     return p;
 }
-Phase InitPhasePause(s32 duration) {
-    Phase p = InitPhase(0, 0, duration, 0);
+
+SpawnPhase SpawnPhasePause(s32 duration) {
+    SpawnPhase p = SpawnPhaseInit(0, 0, duration, 0);
     return p;
 }
 
-void InitPhases(EntityAnimationState stt) {
-    if (stt == ES_KING_PHASE_1) {
+void InitSpawnCycle(EntityState stt, f32 pause = 0.0f) {
+    if (pause != 0.0f) {
+        phase_lst = { phases_mem, 0 };
+        phase_lst.Add( SpawnPhasePause(pause) );
+    }
+    else if (stt == ES_KING_PHASE_1) {
         phase_lst = { phases_mem, 0 };
         phase_lst.cap = 32;
 
-        phase_lst.Add( InitPhase(5, 1, 600, 2.0f) ); // wait
+        phase_lst.Add( SpawnPhaseInit(5, 1, 600, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(10, 20, 120, 0.5f) );
+        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(0, 20, 120, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(10, 20, 120, 0.5f) );
+        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(10, 50, 60, 0.3f) );
 
-        phase_lst.Add( InitPhase(10, 2, 300, 2.0f) );
-        phase_lst.Add( InitPhase(10, 20, 120, 0.5f) );
-        phase_lst.Add( InitPhase(10, 2, 300, 2.0f) );
-        phase_lst.Add( InitPhase(10, 20, 120, 0.5f) );
-        phase_lst.Add( InitPhase(10, 2, 300, 2.0f) );
-        phase_lst.Add( InitPhase(10, 20, 120, 0.5f) );
-        phase_lst.Add( InitPhase(10, 2, 300, 2.0f) );
-        phase_lst.Add( InitPhase(10, 50, 120, 0.5f) );
-
-        phase_lst.Add( InitPhasePause(120) );
+        phase_lst.Add( SpawnPhasePause(120) );
     }
     else if (stt == ES_KING_PHASE_2) {
         phase_lst = { phases_mem, 0 };
         phase_lst.cap = 32;
 
-        phase_lst.Add( InitPhase(20, 1, 100, 2.0f) ); // wait
+        phase_lst.Add( SpawnPhaseInit(20, 1, 100, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(40, 2, 200, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(10, 30, 120, 0.5f) );
+        phase_lst.Add( SpawnPhaseInit(40, 2, 300, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(20, 40, 120, 0.5f) );
 
-        phase_lst.Add( InitPhase(40, 2, 200, 2.0f) );
-        phase_lst.Add( InitPhase(10, 30, 120, 0.5f) );
-        phase_lst.Add( InitPhase(40, 2, 300, 2.0f) );
-        phase_lst.Add( InitPhase(20, 40, 120, 0.5f) );
-
-        phase_lst.Add( InitPhasePause(120) );
+        phase_lst.Add( SpawnPhasePause(120) );
     }
     else if (stt == ES_KING_PHASE_3) {
         phase_lst = { phases_mem, 0 };
         phase_lst.cap = 32;
 
-        phase_lst.Add( InitPhase(5, 1, 100, 2.0f) ); // wait
+        phase_lst.Add( SpawnPhaseInit(5, 1, 100, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(40, 2, 500, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(30, 30, 120, 0.5f) );
+        phase_lst.Add( SpawnPhaseInit(30, 2, 400, 2.0f) );
+        phase_lst.Add( SpawnPhaseInit(30, 40, 120, 0.5f) );
 
-        phase_lst.Add( InitPhase(40, 2, 500, 2.0f) );
-        phase_lst.Add( InitPhase(30, 30, 120, 0.5f) );
-        phase_lst.Add( InitPhase(30, 2, 400, 2.0f) );
-        phase_lst.Add( InitPhase(30, 40, 120, 0.5f) );
-
-        phase_lst.Add( InitPhasePause(120) );
+        phase_lst.Add( SpawnPhasePause(120) );
     }
     else {
         assert(1 == 0 && "king state needed");
     }
-}
 
-bool IsShipControlled() {
-    bool left = IsKeyDown(KEY_LEFT);
-    bool right = IsKeyDown(KEY_RIGHT);
-    bool up = IsKeyDown(KEY_UP);
-    bool down = IsKeyDown(KEY_DOWN);
-
-    return left || right || up || down;
+    phase_idx = 0;
 }
 
 bool IsOverKing() {
@@ -99,8 +93,8 @@ bool IsOverKing() {
 }
 
 void FrameUpdatePhase() {
-    f32 dt = GetFrameTime() * 1000;
-    Phase phase = phase_lst.arr[phase_idx];
+    f32 dt = GetFrameTimeMS();
+    SpawnPhase phase = phase_lst.arr[phase_idx];
 
     // spawn
     SpawnAsteroids(&entities, dt, phase.spawn_ast_small, phase.spawn_ast_med, 0.1f);
@@ -143,7 +137,9 @@ void FrameUpdatePhase() {
         }
 
         if (king->position.y < screen_h - king->ani_rect.y / 2) {
-            if (king->stt == ES_KING_PHASE_1) {
+
+            
+            if (king->state == ES_KING_PHASE_1) {
                 // TODO:
                 //game.SetState(GS_ADVANCE);
 
@@ -153,25 +149,25 @@ void FrameUpdatePhase() {
                     PlayMusicStream(music_track);
                 }
 
-                king->stt = ES_KING_PHASE_2;
+                king->state = ES_KING_PHASE_2;
                 king->position.y = screen_h - 128;
                 king_advance_tick += -2;
                 ship_vy += 0.05f;
 
-                InitPhases(king->stt);
+                InitSpawnCycle(king->state);
             }
-            else if (king->stt == ES_KING_PHASE_2 && (king->position.y < screen_h - king->ani_rect.y * 1.5f)) {
+            else if (king->state == ES_KING_PHASE_2 && (king->position.y < screen_h - king->ani_rect.y * 1.5f)) {
                 // TODO:
                 //game.SetState(GS_ADVANCE);
 
-                king->stt = ES_KING_PHASE_3;
+                king->state = ES_KING_PHASE_3;
                 king->position.y = screen_h - 128;
                 king_advance_tick += -2;
                 ship_vy += 0.05f;
 
-                InitPhases(king->stt);
+                InitSpawnCycle(king->state);
             }
-            else if (king->stt == ES_KING_PHASE_3 && (king->position.y < screen_h - king->ani_rect.y * 2.0f)) {
+            else if (king->state == ES_KING_PHASE_3 && (king->position.y < screen_h - king->ani_rect.y * 2.0f)) {
                 // TODO:
                 //game.SetState(GS_ADVANCE);
 
