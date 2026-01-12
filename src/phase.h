@@ -44,15 +44,15 @@ void InitSpawnCycle(EntityState stt, f32 pause = 0.0f) {
         phase_lst = { phases_mem, 0 };
         phase_lst.cap = 32;
 
-        phase_lst.Add( SpawnPhaseInit(5, 1, 600, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(10, 20, 120, 0.5f) );
-        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(0, 20, 120, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(10, 20, 120, 0.5f) );
-        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(10, 50, 60, 0.3f) );
+        phase_lst.Add( SpawnPhaseInit(5, 1, 600, 0.1f) );
+        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 0.1f) );
+        phase_lst.Add( SpawnPhaseInit(0, 10, 300, 0.1f) );
+        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 0.1f) );
+        phase_lst.Add( SpawnPhaseInit(0, 10, 300, 0.05f) );
+        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 0.1f) );
+        phase_lst.Add( SpawnPhaseInit(10, 20, 120, 0.05f) );
+        phase_lst.Add( SpawnPhaseInit(10, 2, 300, 0.1f) );
+        phase_lst.Add( SpawnPhaseInit(10, 50, 60, 0.03f) );
 
         phase_lst.Add( SpawnPhasePause(120) );
     }
@@ -60,11 +60,11 @@ void InitSpawnCycle(EntityState stt, f32 pause = 0.0f) {
         phase_lst = { phases_mem, 0 };
         phase_lst.cap = 32;
 
-        phase_lst.Add( SpawnPhaseInit(20, 1, 100, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(40, 2, 200, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(10, 30, 120, 0.5f) );
-        phase_lst.Add( SpawnPhaseInit(40, 2, 300, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(20, 40, 120, 0.5f) );
+        phase_lst.Add( SpawnPhaseInit(20, 1, 100, 0.1f) );
+        phase_lst.Add( SpawnPhaseInit(40, 2, 200, 0.1f) );
+        phase_lst.Add( SpawnPhaseInit(10, 30, 120, 0.05f) );
+        phase_lst.Add( SpawnPhaseInit(50, 2, 300, 0.1f) );
+        phase_lst.Add( SpawnPhaseInit(20, 40, 120, 0.05f) );
 
         phase_lst.Add( SpawnPhasePause(120) );
     }
@@ -72,11 +72,11 @@ void InitSpawnCycle(EntityState stt, f32 pause = 0.0f) {
         phase_lst = { phases_mem, 0 };
         phase_lst.cap = 32;
 
-        phase_lst.Add( SpawnPhaseInit(5, 1, 100, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(40, 2, 500, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(30, 30, 120, 0.5f) );
-        phase_lst.Add( SpawnPhaseInit(30, 2, 400, 2.0f) );
-        phase_lst.Add( SpawnPhaseInit(30, 40, 120, 0.5f) );
+        phase_lst.Add( SpawnPhaseInit(5, 1, 100, 0.15f) );
+        phase_lst.Add( SpawnPhaseInit(50, 10, 500, 0.2f) );
+        phase_lst.Add( SpawnPhaseInit(30, 30, 120, 0.15f) );
+        phase_lst.Add( SpawnPhaseInit(30, 2, 400, 0.15f) );
+        phase_lst.Add( SpawnPhaseInit(30, 40, 120, 0.15f) );
 
         phase_lst.Add( SpawnPhasePause(120) );
     }
@@ -94,17 +94,13 @@ bool IsOverKing() {
 
 void FrameUpdatePhase() {
     f32 dt = GetFrameTimeMS();
-    SpawnPhase phase = phase_lst.arr[phase_idx];
-
-    // spawn
-    SpawnAsteroids(&entities, dt, phase.spawn_ast_small, phase.spawn_ast_med, 0.1f);
 
     if (game.GetState() == GS_RESPAWN) {
         if (game.phase_elapsed == 0) {
-            Entity ship = ShipCreate();
-            ship.position = { screen_w / 2, screen_h + ship.ani_rect.height / 2 };
-            ship.velocity = { 0, -0.1f };
-            entities.Add(ship);
+            Entity s = ShipCreate();
+            s.position = { screen_w / 2, screen_h + s.ani_rect.height / 2 };
+            s.velocity = { 0, -0.1f };
+            ship = entities.Add(s);
         }
         else if ((IsOverKing() == false)) {
             // wait
@@ -119,7 +115,10 @@ void FrameUpdatePhase() {
         }
     }
 
-    else if (game.GetState() == GS_GAME) {
+    if (game.GetState() == GS_GAME || game.GetState() == GS_RESPAWN) {
+        SpawnPhase phase = phase_lst.arr[phase_idx];
+        SpawnAsteroids(&entities, dt, phase.spawn_ast_small, phase.spawn_ast_med, phase.spawn_sigma);
+
         if (game.phase_elapsed % 20 == 0) {
             if (CheckCollisionPointCircle(ship->position, king->position, king->coll_radius)) {
                 // TODO: the king must speak! MOVE, LITTLE ONE!
@@ -136,32 +135,25 @@ void FrameUpdatePhase() {
             phase_idx = (phase_idx + 1) % phase_lst.len;
         }
 
-        if (king->position.y < screen_h - king->ani_rect.y / 2) {
-
-            
+        if (king->position.y < screen_h - king->ani_rect.y / 2 - king->ani_rect.y) {
             if (king->state == ES_KING_PHASE_1) {
                 // TODO:
                 //game.SetState(GS_ADVANCE);
 
-                StopMusicStream(music_track);
-                music_track = LoadMusicStream("resources/Dreams.mp3");
-                if (music) {
-                    PlayMusicStream(music_track);
-                }
-
                 king->state = ES_KING_PHASE_2;
-                king->position.y = screen_h - 128;
+                king->position.y = screen_h - 150;
                 king_advance_tick += -2;
                 ship_vy += 0.05f;
 
                 InitSpawnCycle(king->state);
+                SetMusicTrack(&music_track_action);
             }
             else if (king->state == ES_KING_PHASE_2 && (king->position.y < screen_h - king->ani_rect.y * 1.5f)) {
                 // TODO:
                 //game.SetState(GS_ADVANCE);
 
                 king->state = ES_KING_PHASE_3;
-                king->position.y = screen_h - 128;
+                king->position.y = screen_h - 150;
                 king_advance_tick += -2;
                 ship_vy += 0.05f;
 
@@ -171,16 +163,12 @@ void FrameUpdatePhase() {
                 // TODO:
                 //game.SetState(GS_ADVANCE);
 
-                StopMusicStream(music_track);
-                music_track = LoadMusicStream("resources/Nostalgia.mp3");
-                if (music) {
-                    PlayMusicStream(music_track);
-                }
-
+                SetMusicTrack(&music_track_end);
                 game.SetState(GS_END);
             }
         }
     }
+
     game.phase_elapsed++;
 }
 

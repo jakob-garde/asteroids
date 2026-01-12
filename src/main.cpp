@@ -75,14 +75,16 @@ void Init() {
     animations = LoadAssets(&a);
     sounds = LoadSoundEffects(&a);
 
-    // music loop
-    music_track = LoadMusicStream("resources/Waves.mp3");
-    if (music) {
-        PlayMusicStream(music_track);
-    }
-    float volume = 0.5f;
-    SetMusicVolume(music_track, volume);
+    // music
+    music_track_chill = LoadMusicStream("resources/Waves.mp3");
+    music_track_action = LoadMusicStream("resources/Nostalgia.mp3");
+    music_track_end = LoadMusicStream("resources/Dreams.mp3");
+    SetMusicTrack(&music_track_chill);
 
+    float volume = 0.5f;
+    SetMusicVolume(music_track_chill, volume);
+    SetMusicVolume(music_track_action, volume);
+    SetMusicVolume(music_track_end, volume);
     f32 master_volume = 0.3f;
     SetMasterVolume(master_volume);
 
@@ -130,9 +132,13 @@ void Init() {
 
 void Close() {
     UnloadTextures(animations);
+
     UnloadSounds(sounds);
-    UnloadMusicStream(music_track);
+    UnloadMusicStream(music_track_chill);
+    UnloadMusicStream(music_track_action);
+    UnloadMusicStream(music_track_end);
     CloseAudioDevice();
+
     CloseWindow();
 }
 
@@ -209,13 +215,13 @@ void FrameUpdate() {
     }
 
     if (IsKeyPressed(KEY_M)) {
-        music = !music;
+        music_enabled = !music_enabled;
 
-        if (music) {
-            PlayMusicStream(music_track);
+        if (music_enabled) {
+            PlayMusicStream(*music_track);
         }
         else {
-            StopMusicStream(music_track);
+            StopMusicStream(*music_track);
         }
     }
     if (IsKeyPressed(KEY_D)) {
@@ -228,8 +234,8 @@ void FrameUpdate() {
     if (pause) {
         return;
     }
-    if (music) {
-        UpdateMusicStream(music_track);
+    if (music_enabled) {
+        UpdateMusicStream(*music_track);
     }
 
 

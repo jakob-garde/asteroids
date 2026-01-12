@@ -9,6 +9,7 @@
 #define ARENA_CAP 1024 * 1024 * 64
 u8 arena_mem[ARENA_CAP];
 
+
 enum GameState {
     GS_TITLE,
     GS_GAME,
@@ -16,6 +17,7 @@ enum GameState {
     GS_ADVANCE,
     GS_END,
 };
+
 struct AsteroidGame {
 private:
     GameState state;
@@ -30,15 +32,31 @@ public:
         return state;
     }
 };
-
 AsteroidGame game;
+
+bool pause;
+bool debug;
+bool music_enabled = true;
 
 Array<Animation> animations;
 Array<Entity> entities;
 Array<Entity> entities_next;
 Array<SEffect> sounds;
 
-Music music_track;
+Music music_track_chill;
+Music music_track_action;
+Music music_track_end;
+Music *music_track;
+
+void SetMusicTrack(Music *track) {
+    if (music_track) {
+        StopMusicStream(*music_track);
+    }
+    if (music_enabled) {
+        PlayMusicStream(*track);
+    }
+    music_track = track;
+}
 
 f32 screen_w;
 f32 screen_h;
@@ -57,10 +75,6 @@ Entity background;
 Entity mask;
 Entity *ship;
 Entity *king;
-
-bool pause;
-bool debug;
-bool music = true;
 
 s32 AnimationGetFirstByType(EntityType tpe) {
     for (s32 i = 0; i < animations.len; ++i) {
