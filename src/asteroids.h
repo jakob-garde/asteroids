@@ -28,10 +28,10 @@ bool DoSpawn(f32 dt, f32 vy, f32 rate) {
 }
 
 void SpawnAsteroids(Array<Entity> *entities, f32 dt, f32 rate_small, f32 rate_med, f32 sigma) {
-    if (DoSpawn(dt, ship_vy, rate_small)) {
+    if (DoSpawn(dt, ship_global_vy, rate_small)) {
         entities->AddSafe( CreateAsteroid(ET_AST_SMALL, sigma) );
     }
-    if (DoSpawn(dt, ship_vy, rate_med)) {
+    if (DoSpawn(dt, ship_global_vy, rate_med)) {
         entities->AddSafe( CreateAsteroid(ET_AST_MED, sigma) );
     }
 }

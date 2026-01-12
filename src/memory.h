@@ -104,9 +104,7 @@ struct Array {
     }
 
     void InitForCapacity(MArena *a_dest, u32 capacity) {
-        Array<T> result = InitArray<s32>(a_dest, capacity);
-        arr = result.arr;
-        arr.cap = capacity;
+        *this = InitArray<s32>(a_dest, capacity);
     }
 };
 
@@ -152,9 +150,40 @@ u64 Kiss_Random(u64 state[7]) {
 }
 u64 g_kiss_randstate[7];
 
+#include <sys/time.h>
+u64 ReadSystemTimerMySec() {
+    u64 systime;
+    struct timeval tm;
+    gettimeofday(&tm, NULL);
+    systime = (u32) tm.tv_sec*1000000 + tm.tv_usec; // microsecs 
+
+    return systime;
+}
+
+// WINDOWS:
+/*
+u64 ReadSystemTimerMySec() {
+    // systime (via S.O. 10905892)
+
+    static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
+    SYSTEMTIME  system_time;
+    FILETIME    file_time;
+    uint64_t    time;
+    GetSystemTime( &system_time );
+    SystemTimeToFileTime( &system_time, &file_time );
+    time =  ((uint64_t)file_time.dwLowDateTime )      ;
+    time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+    long tv_sec  = (long) ((time - EPOCH) / 10000000L);
+    long tv_usec = (long) (system_time.wMilliseconds * 1000);
+    u64 systime = (u32) tv_sec*1000000 + tv_usec; // microsecs 
+    return systime;
+}
+*/
+
 u32 RandInit(u32 seed = 0) {
     if (seed == 0) {
-        seed = (u32) Hash(42);
+        seed = (u32) Hash(ReadSystemTimerMySec());
     }
     Kiss_SRandom(g_kiss_randstate, seed);
     Kiss_Random(g_kiss_randstate); // flush the first one
@@ -187,5 +216,8 @@ s32 Rand(u64 max) {
     u64 num =  Kiss_Random(g_kiss_randstate) % max;
     return (s32) num;
 }
+
+
+
 
 #endif

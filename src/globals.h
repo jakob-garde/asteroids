@@ -13,7 +13,7 @@ u8 arena_mem[ARENA_CAP];
 enum GameState {
     GS_TITLE,
     GS_GAME,
-    GS_RESPAWN,
+    GS_TRANSITION,
     GS_ADVANCE,
     GS_END,
 };
@@ -60,16 +60,22 @@ void SetMusicTrack(Music *track) {
 
 f32 screen_w;
 f32 screen_h;
-f32 mask_left;
-f32 mask_right;
-f32 mask_top;
-f32 mask_bottom;
+f32 background_mask_left;
+f32 background_mask_right;
+f32 background_mask_top;
+f32 background_mask_bottom;
 
-f32 ship_vy = 0.1f;
+f32 ship_movement_speed = 0.4f;
+f32 ship_global_vy = 0.1f;
+
 s32 king_advance_small = 1;
-s32 king_advance_tick = - 2;
 s32 king_advance_med = 10;
 s32 king_advance_shoot = - 2;
+
+s32 king_advance_interval_ms = 400;
+s32 med_kill_for_advance = 5;
+
+s32 med_kill_cnt;
 
 Entity background;
 Entity mask;
@@ -104,6 +110,12 @@ Array<s32> AnimationGetAllByType(MArena *a_tmp, EntityType tpe) {
 inline
 f32 GetFrameTimeMS() {
     f32 result = GetFrameTime() * 1000;
+    if (result == 0) {
+        // TODO: fix this hack:
+        //      a hack, since the first frame of the game, dt == 0, and we
+        //      are counting on elapsed counters to be advanced every frame
+        result = 1;
+    }
     return result;
 }
 

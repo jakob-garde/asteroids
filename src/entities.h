@@ -104,20 +104,42 @@ enum EntityState {
     ES_SHIP_IDLE,
     ES_SHIP_LEFT,
     ES_SHIP_RIGHT,
+    ES_SHIP_RESPAWN,
 
-    ES_KING_PHASE_1,
-    ES_KING_PHASE_2,
-    ES_KING_PHASE_3,
+    ES_KING_PHASE_0, // peeking up
+    ES_KING_PHASE_1, // one engine
+    ES_KING_PHASE_2, // three engines
+    ES_KING_PHASE_3, // four engines
+    ES_KING_ADVANCE, // moving to ES_KING_PHASE_0
 };
+
+const char *EntityStateToText(EntityState state) {
+    if (ES_UNDEF == state) return "ES_UNDEF";
+    else if (ES_SHOOT_CHARGE == state) return "ES_SHOOT_CHARGE";
+    else if (ES_SHOOT_RELEASE == state) return "ES_SHOOT_RELEASE";
+    else if (ES_SHIP_IDLE == state) return "ES_SHIP_IDLE";
+    else if (ES_SHIP_LEFT == state) return "ES_SHIP_LEFT";
+    else if (ES_SHIP_RIGHT == state) return "ES_SHIP_RIGHT";
+    else if (ES_SHIP_RESPAWN == state) return "ES_SHIP_RESPAWN";
+    else if (ES_KING_PHASE_0 == state) return "ES_KING_PHASE_0";
+    else if (ES_KING_PHASE_1 == state) return "ES_KING_PHASE_1";
+    else if (ES_KING_PHASE_2 == state) return "ES_KING_PHASE_2";
+    else if (ES_KING_PHASE_3 == state) return "ES_KING_PHASE_3";
+    else if (ES_KING_ADVANCE == state) return "ES_KING_ADVANCE";
+    else return "ERROR";
+}
 
 struct Entity {
     EntityType tpe;
     EntityState state;
+    EntityState state_next;
     bool facing_left;
     bool deleted;
     bool disable_debug_draw;
     bool disable_vy;
-    s32 life;
+    s32 life_frames;
+    f32 duration;
+    f32 elapsed;
 
     // kinematics
     Vector2 position;
@@ -197,6 +219,8 @@ Entity *FindFirstEntityByType(EntityType tpe, Array<Entity> entities) {
 }
 
 Entity CreateEntity(EntityType tpe, Array<Animation> animations, bool select_random = true) {
+    // TODO: remove "select_random" parameter
+
     // sets as many fields as possible on a generic Entity
 
     for (s32 i = 0; i < animations.len; ++i) {

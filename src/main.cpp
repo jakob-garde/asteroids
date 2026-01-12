@@ -10,7 +10,6 @@
 #include "asteroids.h"
 #include "ship.h"
 
-
 Array<SEffect> LoadSoundEffects(MArena *a_dest) {
     sounds = InitArray<SEffect>(a_dest, 64);
 
@@ -77,9 +76,8 @@ void Init() {
 
     // music
     music_track_chill = LoadMusicStream("resources/Waves.mp3");
-    music_track_action = LoadMusicStream("resources/Nostalgia.mp3");
-    music_track_end = LoadMusicStream("resources/Dreams.mp3");
-    SetMusicTrack(&music_track_chill);
+    music_track_action = LoadMusicStream("resources/Dreams.mp3");
+    music_track_end = LoadMusicStream("resources/Nostalgia.mp3");
 
     float volume = 0.5f;
     SetMusicVolume(music_track_chill, volume);
@@ -87,6 +85,8 @@ void Init() {
     SetMusicVolume(music_track_end, volume);
     f32 master_volume = 0.3f;
     SetMasterVolume(master_volume);
+
+    SetMusicTrack(&music_track_chill);
 
     // background
     f32 bcgrnd_aspect = 0;
@@ -115,19 +115,17 @@ void Init() {
         mask.ani_rect.x = (screen_w - mask.ani_rect.width) / 2.0f;
         mask.ani_rect.y = 0;
 
-        mask_left = (screen_w - mask.ani_rect.width) / 2.0f + 32;
-        mask_right = mask_left + mask.ani_rect.width - 64;
-        mask_bottom = screen_h * 0.88f;
-        mask_top = screen_h * 0.15f;
+        background_mask_left = (screen_w - mask.ani_rect.width) / 2.0f + 32;
+        background_mask_right = background_mask_left + mask.ani_rect.width - 64;
+        background_mask_bottom = screen_h * 0.88f;
+        background_mask_top = screen_h * 0.15f;
     }
 
     // kingship
-    Entity k = KingCreate();
-    king = FindFirstEntityByType(ET_KING, entities);
-    InitSpawnCycle(k.state);
+    king = entities.Add( KingCreate() );
 
     // start
-    game.SetState(GS_RESPAWN);
+    game.SetState(GS_GAME);
 }
 
 void Close() {
@@ -169,6 +167,13 @@ void FrameDrawAndSwap() {
     }
 
     EntityDraw(animations, &mask);
+
+    //if (debug) {
+        DrawText( TextFormat("PHASE : %d", phase_selected), 0, 0, 24, WHITE);
+        DrawText( TextFormat("KING  : %s", EntityStateToText(king->state)), 0, 24, 24, WHITE);
+        DrawText( TextFormat("KILLS : %d", med_kill_cnt), 0, 48, 24, WHITE);
+    //}
+
     EndDrawing();
 
     // copy entitues to next frame
@@ -238,33 +243,28 @@ void FrameUpdate() {
         UpdateMusicStream(*music_track);
     }
 
-
-    // NOTE: ship_delta_vy is the ship speed relative to the "ambient" asteroids
-    f32 ship_delta_vy = 0;
-    ship_vy += ship_delta_vy;
-    f32 dt = GetFrameTimeMS();
-
     // update
+    f32 dt = GetFrameTimeMS();
     for (s32 i = 0; i < entities.len; ++i) {
         Entity *ent = entities.arr + i;
 
-        if (ent->life > 0) {
-            ent->life--;
-            if (ent->life == 0) {
+        if (ent->life_frames > 0) {
+            ent->life_frames--;
+            if (ent->life_frames == 0) {
                 ent->deleted = true;
             }
         }
 
         if (IsAsteroid(ent->tpe)) {
             if (ent->disable_vy == false) {
-                ent->position.y += dt * ship_vy;
+                ent->position.y += dt * ship_global_vy;
             }
             ent->Update(dt);
 
             // clip asteroids
-            if (ent->position.x < mask_left
+            if (ent->position.x < background_mask_left
                 || ent->position.y < - ent->ani_rect.height
-                || ent->position.x > mask_right
+                || ent->position.x > background_mask_right
                 || ent->position.y > screen_h + ent->ani_rect.height)
             {
                 if (ent->position.y < 0) {
@@ -301,7 +301,7 @@ void Run() {
         }
         else {
             FrameUpdate();
-            FrameUpdatePhase();
+            FrameUpdateLevel01();
         }
 
         FrameDrawAndSwap();
