@@ -24,8 +24,8 @@ Array<Animation> LoadAssets(MArena *a_dest) {
     animations = InitArray<Animation>(a_dest, 64);
 
     animations.Add( InitAnimation(a_dest, "resources/shoot.png", ET_SHOOT, 0, 1, 8) );
-    animations.Add( InitAnimation(a_dest, "resources/notebook.png", ET_AST_BACKGROUND, 0, 1, 1) );
-    animations.Add( InitAnimation(a_dest, "resources/notebook_mask.png", ET_AST_BACKGROUND_MASK, 0, 1, 1) );
+    animations.Add( InitAnimation(a_dest, "resources/notebook.png", ET_BACKGROUND, 0, 1, 1) );
+    animations.Add( InitAnimation(a_dest, "resources/notebook_mask.png", ET_BACKGROUND_MASK, 0, 1, 1) );
 
     animations.Add( InitAnimation(a_dest, "resources/ast_small_01.png", ET_AST_SMALL, 0, 6) );
     animations.Add( InitAnimation(a_dest, "resources/ast_small_02.png", ET_AST_SMALL, 1, 6) );
@@ -91,7 +91,7 @@ void Init() {
     // background
     f32 bcgrnd_aspect = 0;
     {
-        background = CreateEntity(ET_AST_BACKGROUND, animations);
+        background = CreateEntity(ET_BACKGROUND, animations);
         background.disable_debug_draw = true;
 
         Frame frm = animations.arr[background.ani_idx0].frames.arr[0];
@@ -106,7 +106,7 @@ void Init() {
 
     // bckgrnd mask
     {
-        mask = CreateEntity(ET_AST_BACKGROUND_MASK, animations);
+        mask = CreateEntity(ET_BACKGROUND_MASK, animations);
         mask.disable_debug_draw = true;
 
         mask.ani_offset = { 0, 0 };
@@ -120,6 +120,21 @@ void Init() {
         background_mask_bottom = screen_h * 0.88f;
         background_mask_top = screen_h * 0.15f;
     }
+
+    // stary night
+    for (s32 i = 0; i < 26; ++i) {
+        Entity star = {};
+        star.tpe = ET_STAR;
+        s32 x = Rand(background_mask_right - background_mask_left) + background_mask_left;
+        s32 y = Rand(screen_h);
+        star.position = { (f32) x, (f32) y };
+        star.velocity.y = star_velocity;
+        entities.Add(star);
+    }
+    star_color.r = 100;
+    star_color.g = 100;
+    star_color.b = 100;
+    star_color.a = 255;
 
     // kingship
     king = entities.Add( KingCreate() );
@@ -140,6 +155,16 @@ void Close() {
     CloseWindow();
 }
 
+void StarDraw(Entity *ent) {
+    if (ent->position.y >= background_mask_bottom) {
+        ent->position.y = 0;
+    }
+
+    Vector2 dy = ent->position;
+    dy.y += star_size;
+    DrawLineEx(ent->position, dy, 2, star_color);
+}
+
 void FrameDrawAndSwap() {
     BeginDrawing();
     ClearBackground(BLACK);
@@ -156,6 +181,9 @@ void FrameDrawAndSwap() {
         else if (ent->tpe == ET_KING) {
             KingDraw(ent);
         }
+        else if (ent->tpe == ET_STAR) {
+            StarDraw(ent);
+        }
         else {
             EntityDraw(animations, ent);
         }
@@ -168,11 +196,16 @@ void FrameDrawAndSwap() {
 
     EntityDraw(animations, &mask);
 
-    //if (debug) {
+    if (debug) {
         DrawText( TextFormat("PHASE : %d", phase_selected), 0, 0, 24, WHITE);
         DrawText( TextFormat("KING  : %s", EntityStateToText(king->state)), 0, 24, 24, WHITE);
         DrawText( TextFormat("KILLS : %d", med_kill_cnt), 0, 48, 24, WHITE);
-    //}
+    }
+
+    if (game.GetState() == GS_END && game.phase_elapsed > 20000) {
+        s32 tw = MeasureText("THE END", 48);
+        DrawText("THE END", screen_w / 2 - tw / 2, screen_h / 2, 48, BLACK);
+    }
 
     EndDrawing();
 
@@ -292,19 +325,36 @@ void FrameUpdate() {
     }
 }
 
+void SetupSimulatedEnding() {
+    king->state = ES_KING_PHASE_3;
+    king->position.y = KingHeightForAdvance() + king->ani_rect.height;
+    FrameUpdate();
+    FrameUpdateLevel01();
+    game.phase_elapsed = 0;
+    ship->position.y = screen_h - 200;
+    ship->velocity.y = 0;
+    ship->state = ES_SHIP_IDLE;
+    star_size *= 3;
+    SetStarVelocities(star_velocity * 5);
+    game.SetState(GS_END);
+}
+
+
 void Run() {
     Init();
 
     while (!WindowShouldClose()) {
         if (game.GetState() == GS_END) {
             FrameUpdate();
+            FrameUpdateEnd();
+            FrameDrawAndSwap();
         }
         else {
             FrameUpdate();
             FrameUpdateLevel01();
+            FrameDrawAndSwap();
         }
 
-        FrameDrawAndSwap();
     }
 
     Close();

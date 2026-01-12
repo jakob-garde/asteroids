@@ -75,6 +75,20 @@ s32 king_advance_shoot = - 2;
 s32 king_advance_interval_ms = 400;
 s32 med_kill_for_advance = 5;
 
+Color star_color; 
+f32 star_velocity = 0.03f;
+f32 star_size = 2;
+
+void SetStarVelocities(f32 v) {
+    for (s32 i = 0; i < entities.len; ++i) {
+        Entity *ent = entities.arr + i;
+        if (ent->tpe == ET_STAR) {
+            ent->velocity.y = v;
+        }
+    }
+}
+
+
 s32 med_kill_cnt;
 
 Entity background;

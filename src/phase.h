@@ -167,6 +167,8 @@ void FrameUpdateLevel01() {
 
         ship_global_vy += 0.05f;
         king_advance_interval_ms = 230;
+        star_size *= 1.5;
+        SetStarVelocities(star_velocity * 2);
 
         InitSpawnCycle(2);
         SetMusicTrack(&music_track_action);
@@ -178,15 +180,39 @@ void FrameUpdateLevel01() {
 
         ship_global_vy += 0.05f;
         king_advance_interval_ms = 150;
+        star_size *= 1.3;
+        SetStarVelocities(star_velocity * 3);
 
         InitSpawnCycle(3);
     }
+
+    // set end screen
     else if ((king->state == ES_KING_PHASE_3) && (KingHeightAtTop() <= KingHeightForAdvance())) {
+        king_advance_interval_ms = 50;
+        SetStarVelocities(star_velocity * 5);
+        game.phase_elapsed = 0;
+
         SetMusicTrack(&music_track_end);
+
         game.SetState(GS_END);
+        return;
     }
 
     game.phase_elapsed += dt;
+}
+
+void FrameUpdateEnd() {
+    f32 dt = GetFrameTimeMS();
+    if (game.phase_elapsed > 20000 && game.phase_elapsed < 20020) {
+        ship->state = ES_SHIP_RESPAWN; // stops player control
+        ship->velocity.x = 0;
+        ship->velocity.y = - ship_movement_speed * 1.3;
+        star_velocity *= 1.5;
+        game.phase_elapsed += dt;
+    }
+    else {
+        game.phase_elapsed += dt;
+    }
 }
 
 

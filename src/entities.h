@@ -8,8 +8,10 @@
 enum EntityType {
     ET_UNDEF,
 
-    ET_AST_BACKGROUND,
-    ET_AST_BACKGROUND_MASK,
+    ET_BACKGROUND,
+    ET_BACKGROUND_MASK,
+
+    ET_STAR,
 
     ET_AST_SMALL,
     ET_AST_MED,
