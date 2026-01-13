@@ -65,6 +65,9 @@ void Init() {
     screen_w = GetScreenWidth();
     screen_h = GetScreenHeight();
 
+    // always have this screen size:
+    screen_h = fmin(screen_h, 768);
+
     // usr
     RandInit();
 
@@ -131,9 +134,9 @@ void Init() {
         star.velocity.y = star_velocity;
         entities.Add(star);
     }
-    star_color.r = 100;
-    star_color.g = 100;
-    star_color.b = 100;
+    star_color.r = 64;
+    star_color.g = 64;
+    star_color.b = 64;
     star_color.a = 255;
 
     // kingship
@@ -234,24 +237,6 @@ void FrameDrawAndSwap() {
 }
 
 void FrameUpdate() {
-    if (debug && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        // DBG shoot using the mouse
-        entities.Add( ShotCreate({ (f32) GetMouseX(), (f32) GetMouseY() }) );
-    }
-    if (debug && IsKeyPressed(KEY_R)) {
-        // DBG reset
-        for (s32 i = 0; i < entities.len; ++i) {
-            Entity *ent = entities.arr + i;
-            if (ent->tpe == ET_SHIP) {
-                ent->state = ES_SHIP_IDLE;
-                ent->vrot = 0;
-                ent->rot = 0;
-                ent->velocity = {};
-                break;
-            }
-        }
-    }
-
     if (IsKeyPressed(KEY_M)) {
         music_enabled = !music_enabled;
 
@@ -262,7 +247,7 @@ void FrameUpdate() {
             StopMusicStream(*music_track);
         }
     }
-    if (IsKeyPressed(KEY_D)) {
+    if (IsKeyPressed(KEY_B)) {
         debug = !debug;
     }
     if (IsKeyPressed(KEY_P)) {

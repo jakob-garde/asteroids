@@ -158,7 +158,7 @@ void ShipUpdate(Entity *ent, f32 dt) {
             }
         }
     }
-    if (IsKeyPressed(KEY_TAB) || crash) {
+    if (crash) {
         PlaySoundEffect(SE_CRASH, sounds);
 
         ent->tpe = ET_SHIP_CHASH;
@@ -180,7 +180,7 @@ void ShipUpdate(Entity *ent, f32 dt) {
     if (ent->state != ES_SHIP_RESPAWN) {
         ent->state = ES_SHIP_IDLE;
         ent->facing_left = false;
-        if (IsKeyDown(KEY_LEFT)) {
+        if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
             ent->state = ES_SHIP_LEFT;
             ent->facing_left = true;
 
@@ -188,7 +188,7 @@ void ShipUpdate(Entity *ent, f32 dt) {
                 ent->position.x -= ship_movement_speed * dt;
             }
         }
-        else if (IsKeyDown(KEY_RIGHT)) {
+        else if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
             ent->state = ES_SHIP_RIGHT;
             ent->facing_left = false;
 
@@ -197,12 +197,12 @@ void ShipUpdate(Entity *ent, f32 dt) {
             }
         }
 
-        if (IsKeyDown(KEY_UP)) {
+        if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {
             if (ent->position.y > background_mask_top) {
                 ent->position.y -= ship_movement_speed * dt;
             }
         }
-        else if (IsKeyDown(KEY_DOWN)) {
+        else if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S)) {
             if (ent->position.y < background_mask_bottom) {
                 ent->position.y += ship_movement_speed * dt;
             }
